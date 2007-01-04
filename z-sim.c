@@ -8,9 +8,20 @@ static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
 static const microseconds ARM_TIME = 0;
-static const microseconds LAUNCH_TIME = 10000000; /* Traditional ten-second countdown */
-static const microseconds ENGINE_BURN_TIME = 10000000;
-static const double ENGINE_THRUST = 11.196314;
+static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
+static const double ROCKET_EMPTY_MASS = 21.54;
+static const double FUEL_MASS = 5.9;
+static const microseconds ENGINE_BURN_TIME = 4300000;
+static const double ENGINE_THRUST = 3094.65;
+static const double EARTH_GRAVITY = 9.8;
+
+static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
+static const double DROGUE_CHUTE_DRAG_COEFFICIENT = 0.8;
+static const double MAIN_CHUTE_DRAG_COEFFICIENT = 0.8;
+static const double ROCKET_CROSS_SECTION = 0.015327901242699;
+static const double DROGUE_CHUTE_CROSS_SECTION = 0.836954282802814;
+static const double MAIN_CHUTE_CROSS_SECTION = 7.429812032713523;
+static const double AIR_DENSITY = 1.225;
 
 static bool trace, trace_physics;
 
@@ -22,6 +33,15 @@ static bool engine_ignited;
 static microseconds engine_on;
 static bool drogue_chute_deployed;
 static bool main_chute_deployed;
+
+static double sign(double x)
+{
+	if(x < 0)
+		return -1;
+	if(x > 0)
+		return 1;
+	return 0;
+}
 
 static void trace_printf(char *fmt, ...)
 {
@@ -97,16 +117,15 @@ void enqueue_error(char *msg)
 static void update_rocket_state(void)
 {
 	int i;
+	double force[3] = { 0.0, 0.0, 0.0 };
+	double mass = ROCKET_EMPTY_MASS
+	            + FUEL_MASS * (engine_ignited ? engine_on/ENGINE_BURN_TIME : 1);
+	double drag_coefficient, cross_section;
 	t += DELTA_T;
-	for(i = 0; i < 3; ++i)
-	{
-		pos[i] += vel[i] * DELTA_T_SECONDS;
-		vel[i] += acc[i] * DELTA_T_SECONDS;
-		rotpos[i] += rotvel[i] * DELTA_T_SECONDS;
-	}
+
 	if(engine_on)
 	{
-		acc[Z] = ENGINE_THRUST;
+	        force[Z] += ENGINE_THRUST;
 		engine_on -= DELTA_T;
 		if(engine_on <= 0)
 		{
@@ -120,18 +139,33 @@ static void update_rocket_state(void)
 		vel[Z] = 0.0;
 		pos[Z] = 0.0;
 	}
-	else if(main_chute_deployed)
+	else
+		force[Z] += -mass * EARTH_GRAVITY;
+
+        if(main_chute_deployed)
 	{
-		acc[Z] = 0.0;
-		vel[Z] = -10.0;
+		drag_coefficient = MAIN_CHUTE_DRAG_COEFFICIENT;
+		cross_section = MAIN_CHUTE_CROSS_SECTION;
 	}
 	else if(drogue_chute_deployed)
 	{
-		acc[Z] = 0.0;
-		vel[Z] = -30.0;
+		drag_coefficient = DROGUE_CHUTE_DRAG_COEFFICIENT;
+		cross_section = DROGUE_CHUTE_CROSS_SECTION;
 	}
 	else
-		acc[Z] = -9.8;
+	{
+		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
+		cross_section = ROCKET_CROSS_SECTION;
+	}
+	force[Z] += -sign(vel[Z]) * 0.5 * AIR_DENSITY * vel[Z] * vel[Z] * cross_section * drag_coefficient;
+
+	for(i = 0; i < 3; ++i)
+	{
+		pos[i] += vel[i] * DELTA_T_SECONDS;
+		vel[i] += acc[i] * DELTA_T_SECONDS;
+		acc[i] = force[i] / mass;
+		rotpos[i] += rotvel[i] * DELTA_T_SECONDS;
+	}
 }
 
 static void call_rocket_functions(void)
