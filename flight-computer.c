@@ -88,3 +88,7 @@ void omniscience_9000(microseconds timestamp,
 			break;
 	}
 }
+
+void z_accelerometer(double z_acc)
+{
+}

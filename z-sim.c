@@ -173,6 +173,7 @@ static void call_rocket_functions(void)
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n", pos[Z], vel[Z], acc[Z]);
 	omniscience_9000(t, pos, vel, acc, rotpos, rotvel);
+	z_accelerometer(acc[Z]);
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
