@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -14,6 +15,10 @@ static const double FUEL_MASS = 5.9;
 static const microseconds ENGINE_BURN_TIME = 4300000;
 static const double ENGINE_THRUST = 3094.65;
 static const double EARTH_GRAVITY = 9.8;
+static const double GAS_CONSTANT = 287.053; /* J / (kg * K) */
+static const double BASE_PRESSURE = 100000; /* Pa */
+static const double BASE_TEMP = 273.15; /* K */
+static const double TEMP_LAPSE_RATE = -0.0065; /* K/m */
 
 static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
 static const double DROGUE_CHUTE_DRAG_COEFFICIENT = 0.8;
@@ -29,6 +34,7 @@ static bool trace, trace_physics;
 static enum state rocket_state;
 static microseconds t;
 static vec3 pos, vel, acc, rotpos, rotvel;
+static double pressure;
 static bool engine_ignited;
 static microseconds engine_on;
 static bool drogue_chute_deployed;
@@ -114,6 +120,13 @@ void enqueue_error(char *msg)
 	trace_printf("Error message from rocket: %s\n", msg);
 }
 
+static double altitude_to_pressure(double z_pos)
+{
+	return BASE_PRESSURE
+	     * pow(1 + z_pos * (TEMP_LAPSE_RATE/BASE_TEMP),
+	           -EARTH_GRAVITY / (TEMP_LAPSE_RATE * GAS_CONSTANT));
+}
+
 static void update_rocket_state(void)
 {
 	int i;
@@ -166,6 +179,8 @@ static void update_rocket_state(void)
 		acc[i] = force[i] / mass;
 		rotpos[i] += rotvel[i] * DELTA_T_SECONDS;
 	}
+
+	pressure = altitude_to_pressure(pos[Z]);
 }
 
 static void call_rocket_functions(void)
@@ -174,6 +189,7 @@ static void call_rocket_functions(void)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n", pos[Z], vel[Z], acc[Z]);
 	omniscience_9000(t, pos, vel, acc, rotpos, rotvel);
 	z_accelerometer(acc[Z]);
+	pressure_sensor(pressure);
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");

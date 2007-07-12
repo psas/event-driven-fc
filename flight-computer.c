@@ -92,3 +92,7 @@ void omniscience_9000(microseconds timestamp,
 void z_accelerometer(double z_acc)
 {
 }
+
+void pressure_sensor(double pressure)
+{
+}

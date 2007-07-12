@@ -21,3 +21,4 @@ void omniscience_9000(microseconds timestamp,
                       vec3 pos, vec3 vel, vec3 acc,
                       vec3 rotpos, vec3 rotvel);
 void z_accelerometer(double z_acc);
+void pressure_sensor(double pressure);
