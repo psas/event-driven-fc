@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "fc.h"
+#include "interface.h"
 
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
