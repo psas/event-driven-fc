@@ -11,7 +11,11 @@
 #define AIR_GAS_CONSTANT 287.053
 #define NUMBER_OF_LAYERS 7
 #define MAXIMUM_ALTITUDE 84852
+#define MINIMUM_PRESSURE 0.3734
+#define LAYER0_BASE_TEMPERATURE 288.15
+#define LAYER0_BASE_PRESSURE 101325
 
-double pressure_sensor(double);
+double altitude_to_pressure(double);
+double pressure_to_altitude(double);
 
 #endif
