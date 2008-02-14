@@ -173,6 +173,8 @@ static void update_rocket_state(void)
 	}
 	force[Z] += -sign(vel[Z]) * 0.5 * AIR_DENSITY * vel[Z] * vel[Z] * cross_section * drag_coefficient;
 
+	/* FIXME: this should use a better numerical integration technique,
+	 * such as Runge-Kutta or leapfrog integration. */
 	for(i = 0; i < 3; ++i)
 	{
 		pos[i] += vel[i] * DELTA_T_SECONDS;
