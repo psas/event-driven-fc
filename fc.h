@@ -15,6 +15,20 @@ enum { X, Y, Z };
 typedef double vec3[3];
 typedef uint64_t microseconds;
 
+struct physics_state {
+	vec3 pos, vel, acc;
+	vec3 rotpos, rotvel, rotacc;
+	double mass;
+};
+
+struct rocket_state {
+	struct physics_state physics;
+	bool engine_ignited;
+	microseconds engine_on;
+	bool drogue_chute_deployed;
+	bool main_chute_deployed;
+};
+
 void arm(void);
 void launch(void);
 void omniscience_9000(microseconds timestamp,
