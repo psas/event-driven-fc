@@ -35,7 +35,6 @@ static bool trace, trace_physics;
 static enum state rocket_state;
 static microseconds t;
 static vec3 pos, vel, acc, rotpos, rotvel;
-static double pressure;
 static bool engine_ignited;
 static microseconds engine_on;
 static bool drogue_chute_deployed;
@@ -182,8 +181,6 @@ static void update_rocket_state(void)
 		acc[i] = force[i] / mass;
 		rotpos[i] += rotvel[i] * DELTA_T_SECONDS;
 	}
-
-	pressure = altitude_to_pressure(pos[Z]);
 }
 
 static void call_rocket_functions(void)
@@ -192,7 +189,7 @@ static void call_rocket_functions(void)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n", pos[Z], vel[Z], acc[Z]);
 	omniscience_9000(t, pos, vel, acc, rotpos, rotvel);
 	z_accelerometer(acc[Z]);
-	pressure_sensor(pressure);
+	pressure_sensor(altitude_to_pressure(pos[Z]));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
