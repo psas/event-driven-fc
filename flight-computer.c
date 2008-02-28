@@ -44,8 +44,7 @@ void launch(void)
 		enqueue_error("Cannot launch: not armed.");
 }
 
-void omniscience_9000(microseconds timestamp,
-                      vec3 pos, vec3 vel, vec3 acc,
+void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,
                       vec3 rotpos, vec3 rotvel)
 {
 	switch(state)

@@ -219,7 +219,7 @@ static void call_rocket_functions(void)
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
 				rocket_state.physics.pos[Z], rocket_state.physics.vel[Z], rocket_state.physics.acc[Z]);
-	omniscience_9000(t, rocket_state.physics.pos,
+	omniscience_9000(rocket_state.physics.pos,
 			rocket_state.physics.vel,
 			rocket_state.physics.acc,
 			rocket_state.physics.rotpos,
