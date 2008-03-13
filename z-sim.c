@@ -175,19 +175,20 @@ static void update_rocket_state(struct rocket_state *rocket_state, double delta_
 	if(rocket_state->engine_burning)
 		rocket_state->physics.mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
 
-	gravity_force(rocket_state, tmp);
-	vec_add(force, tmp);
-	drag_force(rocket_state, tmp);
-	vec_add(force, tmp);
+	if(rocket_state->engine_burning || rocket_state->physics.pos[Z] > 0.0)
+	{
+		gravity_force(rocket_state, tmp);
+		vec_add(force, tmp);
+		drag_force(rocket_state, tmp);
+		vec_add(force, tmp);
+	}
+	else
+	{
+		rocket_state->physics.pos[Z] = 0.0;
+		rocket_state->physics.vel[Z] = 0.0;
+	}
 	thrust_force(rocket_state, tmp);
 	vec_add(force, tmp);
-
-	if(rocket_state->physics.pos[Z] < 0.0)
-	{
-		rocket_state->physics.pos[Z] = -0.0001;
-		rocket_state->physics.vel[Z] = 0;
-		rocket_state->physics.acc[Z] = 0;
-	}
 
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
@@ -251,8 +252,7 @@ int main(int argc, char *argv[])
 	while(fc_state != STATE_RECOVERY)
 	{
 		t += DELTA_T;
-		if(engine_ignited)
-			update_rocket_state(&rocket_state, DELTA_T_SECONDS);
+		update_rocket_state(&rocket_state, DELTA_T_SECONDS);
 		update_simulator();
 	}
 	return 0;
