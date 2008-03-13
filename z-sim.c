@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "vec.h"
 #include "fc.h"
 #include "interface.h"
 
@@ -174,13 +175,6 @@ static void thrust_force(struct rocket_state *rocket_state, vec3 force)
 	}
 	else
 		force[Z] = 0;
-}
-
-static void vec_add(vec3 dst, vec3 src)
-{
-	dst[X] += src[X];
-	dst[Y] += src[Y];
-	dst[Z] += src[Z];
 }
 
 static void update_rocket_state(struct rocket_state *rocket_state, double delta_t)

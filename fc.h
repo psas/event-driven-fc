@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "vec.h"
 
 enum state {
 	STATE_PREFLIGHT,      // until both given command to arm, and ready to arm
@@ -10,9 +11,6 @@ enum state {
 	STATE_RECOVERY        // forever
 };
 
-enum { X, Y, Z };
-
-typedef double vec3[3];
 typedef uint64_t microseconds;
 
 struct physics_state {
