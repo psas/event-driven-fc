@@ -13,14 +13,10 @@ enum state {
 
 typedef uint64_t microseconds;
 
-struct physics_state {
+struct rocket_state {
 	vec3 pos, vel, acc;
 	vec3 rotpos, rotvel, rotacc;
 	double mass;
-};
-
-struct rocket_state {
-	struct physics_state physics;
 	bool engine_burning;
 	bool drogue_chute_deployed;
 	bool main_chute_deployed;

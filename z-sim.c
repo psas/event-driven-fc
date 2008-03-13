@@ -130,7 +130,7 @@ static double altitude_to_pressure(double z_pos)
 static void gravity_force(struct rocket_state *rocket_state, vec3 force)
 {
 	force[X] = force[Y] = 0;
-	force[Z] = -rocket_state->physics.mass * EARTH_GRAVITY;
+	force[Z] = -rocket_state->mass * EARTH_GRAVITY;
 }
 
 static void drag_force(struct rocket_state *rocket_state, vec3 force)
@@ -152,8 +152,8 @@ static void drag_force(struct rocket_state *rocket_state, vec3 force)
 		cross_section = ROCKET_CROSS_SECTION;
 	}
 	force[X] = force[Y] = 0;
-	force[Z] = -sign(rocket_state->physics.vel[Z]) * 0.5 * AIR_DENSITY
-		* rocket_state->physics.vel[Z] * rocket_state->physics.vel[Z]
+	force[Z] = -sign(rocket_state->vel[Z]) * 0.5 * AIR_DENSITY
+		* rocket_state->vel[Z] * rocket_state->vel[Z]
 		* cross_section * drag_coefficient;
 }
 
@@ -173,9 +173,9 @@ static void update_rocket_state(struct rocket_state *rocket_state, double delta_
 	vec3 tmp;
 
 	if(rocket_state->engine_burning)
-		rocket_state->physics.mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
+		rocket_state->mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
 
-	if(rocket_state->engine_burning || rocket_state->physics.pos[Z] > 0.0)
+	if(rocket_state->engine_burning || rocket_state->pos[Z] > 0.0)
 	{
 		gravity_force(rocket_state, tmp);
 		vec_add(force, tmp);
@@ -184,8 +184,8 @@ static void update_rocket_state(struct rocket_state *rocket_state, double delta_
 	}
 	else
 	{
-		rocket_state->physics.pos[Z] = 0.0;
-		rocket_state->physics.vel[Z] = 0.0;
+		rocket_state->pos[Z] = 0.0;
+		rocket_state->vel[Z] = 0.0;
 	}
 	thrust_force(rocket_state, tmp);
 	vec_add(force, tmp);
@@ -194,10 +194,10 @@ static void update_rocket_state(struct rocket_state *rocket_state, double delta_
 	 * such as Runge-Kutta or leapfrog integration. */
 	for(i = 0; i < 3; ++i)
 	{
-		rocket_state->physics.pos[i] += rocket_state->physics.vel[i] * delta_t;
-		rocket_state->physics.vel[i] += rocket_state->physics.acc[i] * delta_t;
-		rocket_state->physics.acc[i] = force[i] / rocket_state->physics.mass;
-		rocket_state->physics.rotpos[i] += rocket_state->physics.rotvel[i] * delta_t;
+		rocket_state->pos[i] += rocket_state->vel[i] * delta_t;
+		rocket_state->vel[i] += rocket_state->acc[i] * delta_t;
+		rocket_state->acc[i] = force[i] / rocket_state->mass;
+		rocket_state->rotpos[i] += rocket_state->rotvel[i] * delta_t;
 	}
 }
 
@@ -205,14 +205,14 @@ static void update_simulator(void)
 {
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
-				rocket_state.physics.pos[Z], rocket_state.physics.vel[Z], rocket_state.physics.acc[Z]);
-	omniscience_9000(rocket_state.physics.pos,
-			rocket_state.physics.vel,
-			rocket_state.physics.acc,
-			rocket_state.physics.rotpos,
-			rocket_state.physics.rotvel);
-	z_accelerometer(rocket_state.physics.acc[Z]);
-	pressure_sensor(altitude_to_pressure(rocket_state.physics.pos[Z]));
+				rocket_state.pos[Z], rocket_state.vel[Z], rocket_state.acc[Z]);
+	omniscience_9000(rocket_state.pos,
+			rocket_state.vel,
+			rocket_state.acc,
+			rocket_state.rotpos,
+			rocket_state.rotvel);
+	z_accelerometer(rocket_state.acc[Z]);
+	pressure_sensor(altitude_to_pressure(rocket_state.pos[Z]));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
@@ -233,7 +233,7 @@ static void update_simulator(void)
 
 static void init_rocket_state(struct rocket_state *rocket_state)
 {
-	rocket_state->physics.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
+	rocket_state->mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 }
 
 int main(int argc, char *argv[])
