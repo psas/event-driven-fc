@@ -33,6 +33,8 @@ static const double AIR_DENSITY = 1.225;
 static bool trace, trace_physics;
 static microseconds t;
 static enum state fc_state;
+static bool engine_ignited;
+static microseconds engine_ignition_time;
 
 /* State of the simulated rocket. */
 static struct rocket_state rocket_state;
@@ -73,11 +75,12 @@ void ignite(bool go)
 {
 	if(go)
 	{
-		if(!rocket_state.engine_ignited)
+		if(!engine_ignited)
 		{
 			trace_printf("Engine ignition\n");
-			rocket_state.engine_ignited = true;
-			rocket_state.engine_on = ENGINE_BURN_TIME;
+			engine_ignited = true;
+			rocket_state.engine_burning = true;
+			engine_ignition_time = t;
 		}
 		else
 			trace_printf("Rocket trying to reignite engine.\n");
@@ -124,16 +127,10 @@ static double altitude_to_pressure(double z_pos)
 	           -EARTH_GRAVITY / (TEMP_LAPSE_RATE * GAS_CONSTANT));
 }
 
-static double current_mass(struct rocket_state *rocket_state)
-{
-	return ROCKET_EMPTY_MASS
-		+ FUEL_MASS * (rocket_state->engine_ignited ? rocket_state->engine_on/ENGINE_BURN_TIME : 1);
-}
-
 static void gravity_force(struct rocket_state *rocket_state, vec3 force)
 {
 	force[X] = force[Y] = 0;
-	force[Z] = -current_mass(rocket_state) * EARTH_GRAVITY;
+	force[Z] = -rocket_state->physics.mass * EARTH_GRAVITY;
 }
 
 static void drag_force(struct rocket_state *rocket_state, vec3 force)
@@ -163,16 +160,8 @@ static void drag_force(struct rocket_state *rocket_state, vec3 force)
 static void thrust_force(struct rocket_state *rocket_state, vec3 force)
 {
 	force[X] = force[Y] = 0;
-	if(rocket_state->engine_on)
-	{
+	if(rocket_state->engine_burning)
 	        force[Z] = ENGINE_THRUST;
-		rocket_state->engine_on -= DELTA_T;
-		if(rocket_state->engine_on <= 0)
-		{
-			trace_printf("Engine burn-out.\n");
-			rocket_state->engine_on = 0;
-		}
-	}
 	else
 		force[Z] = 0;
 }
@@ -182,6 +171,9 @@ static void update_rocket_state(struct rocket_state *rocket_state, double delta_
 	int i;
 	vec3 force = { 0.0, 0.0, 0.0 };
 	vec3 tmp;
+
+	if(rocket_state->engine_burning)
+		rocket_state->physics.mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
 
 	gravity_force(rocket_state, tmp);
 	vec_add(force, tmp);
@@ -203,12 +195,12 @@ static void update_rocket_state(struct rocket_state *rocket_state, double delta_
 	{
 		rocket_state->physics.pos[i] += rocket_state->physics.vel[i] * delta_t;
 		rocket_state->physics.vel[i] += rocket_state->physics.acc[i] * delta_t;
-		rocket_state->physics.acc[i] = force[i] / current_mass(rocket_state);
+		rocket_state->physics.acc[i] = force[i] / rocket_state->physics.mass;
 		rocket_state->physics.rotpos[i] += rocket_state->physics.rotvel[i] * delta_t;
 	}
 }
 
-static void call_rocket_functions(void)
+static void update_simulator(void)
 {
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
@@ -220,16 +212,27 @@ static void call_rocket_functions(void)
 			rocket_state.physics.rotvel);
 	z_accelerometer(rocket_state.physics.acc[Z]);
 	pressure_sensor(altitude_to_pressure(rocket_state.physics.pos[Z]));
-	if(!rocket_state.engine_ignited && t >= LAUNCH_TIME)
+	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
 		launch();
+	}
+	if(rocket_state.engine_burning
+	   && t - engine_ignition_time >= ENGINE_BURN_TIME)
+	{
+		trace_printf("Engine burn-out.\n");
+		rocket_state.engine_burning = false;
 	}
 	if(fc_state == STATE_PREFLIGHT && t >= ARM_TIME)
 	{
 		trace_printf("Sending arm signal\n");
 		arm();
 	}
+}
+
+static void init_rocket_state(struct rocket_state *rocket_state)
+{
+	rocket_state->physics.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 }
 
 int main(int argc, char *argv[])
@@ -243,12 +246,14 @@ int main(int argc, char *argv[])
 			trace = trace_physics = true;
 	}
 
+	init_rocket_state(&rocket_state);
+
 	while(fc_state != STATE_RECOVERY)
 	{
 		t += DELTA_T;
-		if(rocket_state.engine_ignited)
+		if(engine_ignited)
 			update_rocket_state(&rocket_state, DELTA_T_SECONDS);
-		call_rocket_functions();
+		update_simulator();
 	}
 	return 0;
 }

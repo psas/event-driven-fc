@@ -21,8 +21,7 @@ struct physics_state {
 
 struct rocket_state {
 	struct physics_state physics;
-	bool engine_ignited;
-	microseconds engine_on;
+	bool engine_burning;
 	bool drogue_chute_deployed;
 	bool main_chute_deployed;
 };
