@@ -180,7 +180,7 @@ static void thrust_force(struct rocket_state *rocket_state, vec3 force)
 static void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
 	int i;
-	double force[3] = { 0.0, 0.0, 0.0 };
+	vec3 force = { 0.0, 0.0, 0.0 };
 	vec3 tmp;
 
 	gravity_force(rocket_state, tmp);
