@@ -1,8 +1,8 @@
-SOURCES = z-sim.c flight-computer.c
+SOURCES = z-sim.c flight-computer.c physics.c
 
 all: z-sim
 
-z-sim: $(SOURCES) fc.h interface.h
+z-sim: $(SOURCES) fc.h interface.h physics.h
 	$(CC) -Wall -Werror -O3 -ffast-math -fwhole-program -combine $(SOURCES) -lm -o $@
 
 clean:

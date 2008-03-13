@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "vec.h"
 
 enum state {
@@ -9,17 +8,6 @@ enum state {
 	STATE_DROGUE_DESCENT, // until z < 500m
 	STATE_MAIN_DESCENT,   // until touchdown
 	STATE_RECOVERY        // forever
-};
-
-typedef uint64_t microseconds;
-
-struct rocket_state {
-	vec3 pos, vel, acc;
-	vec3 rotpos, rotvel, rotacc;
-	double mass;
-	bool engine_burning;
-	bool drogue_chute_deployed;
-	bool main_chute_deployed;
 };
 
 void arm(void);
