@@ -1,3 +1,6 @@
+#ifndef FC_H
+#define FC_H
+
 #include "vec.h"
 
 enum state {
@@ -16,3 +19,5 @@ void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,
                       vec3 rotpos, vec3 rotvel);
 void z_accelerometer(double z_acc);
 void pressure_sensor(double pressure);
+
+#endif /* FC_H */
