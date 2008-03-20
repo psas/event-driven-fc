@@ -7,6 +7,7 @@
 #include "fc.h"
 #include "interface.h"
 #include "physics.h"
+#include "pressure_sensor.h"
 
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
@@ -14,10 +15,6 @@ static const microseconds DELTA_T = 1000;
 static const microseconds ARM_TIME = 0;
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
 static const double ROCKET_EMPTY_MASS = 21.54;
-static const double GAS_CONSTANT = 287.053; /* J / (kg * K) */
-static const double BASE_PRESSURE = 100000; /* Pa */
-static const double BASE_TEMP = 273.15; /* K */
-static const double TEMP_LAPSE_RATE = -0.0065; /* K/m */
 
 static bool trace, trace_physics;
 static microseconds t;
@@ -98,13 +95,6 @@ void main_chute(bool go)
 void enqueue_error(char *msg)
 {
 	trace_printf("Error message from rocket: %s\n", msg);
-}
-
-static double altitude_to_pressure(double z_pos)
-{
-	return BASE_PRESSURE
-	     * pow(1 + z_pos * (TEMP_LAPSE_RATE/BASE_TEMP),
-	           -EARTH_GRAVITY / (TEMP_LAPSE_RATE * GAS_CONSTANT));
 }
 
 static void update_simulator(void)
