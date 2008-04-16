@@ -15,7 +15,8 @@ static const double ENGINE_THRUST = 3094.65;
 static const double FUEL_MASS = 5.9;
 static const microseconds ENGINE_BURN_TIME = 4300000;
 
-struct rocket_state {
+struct rocket_state
+{
 	vec3 pos, vel, acc;
 	vec3 rotpos, rotvel, rotacc;
 	double mass;

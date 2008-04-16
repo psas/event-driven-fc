@@ -3,7 +3,8 @@
 
 #include "vec.h"
 
-enum state {
+enum state
+{
 	STATE_PREFLIGHT,      // until both given command to arm, and ready to arm
 	STATE_ARMED,          // until launch command given and upward thrust detected
 	STATE_BOOST,          // until burnout detected
