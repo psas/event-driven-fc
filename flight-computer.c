@@ -1,7 +1,10 @@
 #include <stdbool.h>
 #include <math.h>
 #include "fc.h"
+#include "gprob.h"
 #include "interface.h"
+#include "physics.h"
+#include "pressure_sensor.h"
 
 /* Position and rotation use local tangent plane (LTP); when on the launch
  * tower, all values read 0. Positive x goes east.  Positive y goes north.
@@ -12,6 +15,21 @@
  * meters/second, meters/second^2, radians.
  */
 
+static const double z_acc_sd = 0.01;
+static const double pressure_sd = 10;
+
+#define PARTICLE_COUNT 1000
+struct particle
+{
+	double weight;
+	struct rocket_state s;
+};
+static struct particle particles[PARTICLE_COUNT];
+
+#define for_each_particle(v) \
+	for(particle = particles; \
+	    particle != particles + PARTICLE_COUNT; \
+	    particle++)
 
 static enum state state = STATE_PREFLIGHT;
 
@@ -21,6 +39,16 @@ static void change_state(enum state new_state)
 {
 	state = new_state;
 	report_state(state);
+}
+
+void init(void)
+{
+	struct particle *particle;
+	for_each_particle(particle)
+	{
+		particle->weight = 1.0;
+		particle->s.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
+	}
 }
 
 void arm(void)
@@ -90,8 +118,19 @@ void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,
 
 void z_accelerometer(double z_acc)
 {
+	struct particle *particle;
+	for_each_particle(particle)
+	{
+		particle->weight *= gprob(particle->s.acc[Z] - z_acc, z_acc_sd);
+	}
 }
 
 void pressure_sensor(double pressure)
 {
+	struct particle *particle;
+	double altitude = pressure_to_altitude(pressure);
+	for_each_particle(particle)
+	{
+		particle->weight *= gprob(particle->s.pos[Z] - altitude, pressure_sd);
+	}
 }

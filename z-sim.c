@@ -14,7 +14,6 @@ static const microseconds DELTA_T = 1000;
 
 static const microseconds ARM_TIME = 0;
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
-static const double ROCKET_EMPTY_MASS = 21.54;
 
 static bool trace, trace_physics;
 static microseconds t;
@@ -144,6 +143,7 @@ int main(int argc, char *argv[])
 	}
 
 	init_rocket_state(&rocket_state);
+	init();
 
 	while(fc_state != STATE_RECOVERY)
 	{

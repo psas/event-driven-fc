@@ -12,6 +12,7 @@ static const double EARTH_GRAVITY = 9.8;
 
 /* Thrust constants */
 static const double ENGINE_THRUST = 3094.65;
+static const double ROCKET_EMPTY_MASS = 21.54;
 static const double FUEL_MASS = 5.9;
 static const microseconds ENGINE_BURN_TIME = 4300000;
 

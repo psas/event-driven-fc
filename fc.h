@@ -14,6 +14,7 @@ enum state
 	STATE_RECOVERY        // forever
 };
 
+void init(void);
 void arm(void);
 void launch(void);
 void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,
