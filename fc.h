@@ -15,6 +15,7 @@ enum state
 };
 
 void init(void);
+void tick(double delta_t);
 void arm(void);
 void launch(void);
 void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,

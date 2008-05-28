@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
 		t += DELTA_T;
 		update_rocket_state(&rocket_state, DELTA_T_SECONDS);
 		update_simulator();
+		tick(DELTA_T_SECONDS);
 	}
 	return 0;
 }

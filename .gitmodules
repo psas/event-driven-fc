@@ -1,0 +1,3 @@
+[submodule "ziggurat"]
+	path = ziggurat
+	url = git://svcs.cs.pdx.edu/git/ziggurat.git

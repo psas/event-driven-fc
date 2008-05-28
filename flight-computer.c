@@ -1,10 +1,14 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <math.h>
 #include "fc.h"
 #include "gprob.h"
 #include "interface.h"
+#include "particle.h"
 #include "physics.h"
 #include "pressure_sensor.h"
+#include "resample.h"
+#include "ziggurat/random.h"
 
 /* Position and rotation use local tangent plane (LTP); when on the launch
  * tower, all values read 0. Positive x goes east.  Positive y goes north.
@@ -15,16 +19,18 @@
  * meters/second, meters/second^2, radians.
  */
 
-static const double z_acc_sd = 0.01;
+static const double z_accelerometer_sd = 0.01;
 static const double pressure_sd = 10;
 
+static const double z_acc_sd = 100;
+static const double z_vel_sd = 100;
+static const double z_pos_sd = 100;
+static const double mass_sd  = 1;
+
 #define PARTICLE_COUNT 1000
-struct particle
-{
-	double weight;
-	struct rocket_state s;
-};
-static struct particle particles[PARTICLE_COUNT];
+static struct particle particle_arrays[2][PARTICLE_COUNT];
+static struct particle *particles = particle_arrays[0];
+static unsigned int which_particles = 0;
 
 #define for_each_particle(v) \
 	for(particle = particles; \
@@ -49,6 +55,46 @@ void init(void)
 		particle->weight = 1.0;
 		particle->s.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 	}
+}
+
+static void add_random_noise(double delta_t, struct particle *particle)
+{
+	particle->s.pos[Z] += delta_t * gaussian(z_pos_sd);
+	particle->s.vel[Z] += delta_t * gaussian(z_vel_sd);
+	particle->s.acc[Z] += delta_t * gaussian(z_acc_sd);
+	particle->s.mass   += delta_t * gaussian(mass_sd);
+}
+
+void tick(double delta_t)
+{
+	double total_weight = 0.0;
+	struct rocket_state centroid = { };
+	struct particle *particle;
+
+	for_each_particle(particle)
+	{
+		total_weight += particle->weight;
+		centroid.pos[Z] += particle->weight * particle->s.pos[Z];
+		centroid.vel[Z] += particle->weight * particle->s.vel[Z];
+		centroid.acc[Z] += particle->weight * particle->s.acc[Z];
+		centroid.mass   += particle->weight * particle->s.mass;
+
+		add_random_noise(delta_t, particle);
+
+		update_rocket_state(&particle->s, delta_t);
+	}
+
+	centroid.pos[Z] /= total_weight;
+	centroid.vel[Z] /= total_weight;
+	centroid.acc[Z] /= total_weight;
+	centroid.mass   /= total_weight;
+
+	printf("BPF: total weight: %f  centroid Z pos, vel, acc: %f %f %f\n",
+	       total_weight, centroid.pos[Z], centroid.vel[Z], centroid.acc[Z]);
+
+	resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
+	which_particles = !which_particles;
+	particles = particle_arrays[which_particles];
 }
 
 void arm(void)
@@ -116,12 +162,12 @@ void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,
 	}
 }
 
-void z_accelerometer(double z_acc)
+void z_accelerometer(double z_accelerometer)
 {
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		particle->weight *= gprob(particle->s.acc[Z] - z_acc, z_acc_sd);
+		particle->weight *= gprob(particle->s.acc[Z] - z_accelerometer, z_accelerometer_sd);
 	}
 }
 
