@@ -36,7 +36,7 @@ static struct particle particle_arrays[2][PARTICLE_COUNT];
 static struct particle *particles = particle_arrays[0];
 static unsigned int which_particles = 0;
 
-#define for_each_particle(v) \
+#define for_each_particle(particle) \
 	for(particle = particles; \
 	    particle != particles + PARTICLE_COUNT; \
 	    particle++)
