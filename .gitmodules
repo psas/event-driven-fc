@@ -1,0 +1,3 @@
+[submodule "ziggurat"]
+	path = ziggurat
+	url = ssh://svcs.cs.pdx.edu/git/ziggurat.git
