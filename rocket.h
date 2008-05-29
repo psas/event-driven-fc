@@ -1,3 +1,9 @@
+// Copyright 2008 Julian Blake Kongslie
+// Based on code by
+//  Jamey Sharp
+//  Josh Triplett
+// Licensed under the GNU GPL version 2.
+
 #pragma once
 
 #include <ziggurat/random.h>
