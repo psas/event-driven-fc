@@ -19,8 +19,8 @@ static inline void incorporate_drag( struct rocket *rocket, double drag_coeff, d
 };
 
 static inline void incorporate_thrust( struct rocket *rocket, double thrust ) {
-  struct vec thrust = { .z = thrust };
-  vec_add( &(rocket->accel), &thrust );
+  struct vec thrust_v = { .z = thrust };
+  vec_add( &(rocket->accel), &thrust_v );
 };
 
 void update_rocket( double delta_t, struct rocket *rocket ) {
