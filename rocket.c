@@ -74,7 +74,7 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   permute_vec( &(rocket->accel), delta_t );
 
   // Likewise, I don't have a particularly good justification for the probability of state transition.
-  if (rocket->state < STATE_COUNT && uniform( ) < 0.10)
+  if (rocket->state < STATE_COUNT && uniform( ) < delta_t)
     ++(rocket->state);
 
 };
