@@ -1,6 +1,8 @@
 // Copyright 2008 Julian Blake Kongslie
 // Licensed under the GNU GPL version 2.
 
+#include <stdbool.h>
+
 #include "rocket.h"
 
 bool detect_apogee_in_coast( struct rocket *state ) {

@@ -3,16 +3,20 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include "rocket.h"
 
 struct simulator_state {
   double        time;
+  bool          beeninair
   struct rocket rocket;
 };
 
 static const struct simulator_state initial_sim =
-  { .time   = 0
-  , .rocket = initial_rocket
+  { .time       = 0
+  , .beeninair  = false
+  , .rocket     = initial_rocket
   };
 
 static const struct rocket initial_rocket =
@@ -29,4 +33,4 @@ static const struct rocket initial_rocket =
   , .fuel     = FUEL_MASS
   };
 
-static void simulator_tick( double delta_t, struct simulator_state *sim );
+static bool simulator_tick( double delta_t, struct simulator_state *sim );

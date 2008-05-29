@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include "rocket.h"
 
 bool detect_apogee_in_coast( struct rocket *state );
