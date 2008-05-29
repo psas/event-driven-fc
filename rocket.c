@@ -9,7 +9,7 @@
 
 static inline void incorporate_drag( struct rocket *rocket, double drag_coeff, double cross_section ) {
   struct vec drag = {
-    .z  = -sign(rocket->velocity.z)
+    .z  = (rocket->velocity.z > 0 ? -1 : 1)
         * 0.5 * AIR_DENSITY
         * rocket->velocity.z * rocket->velocity.z
         * drag_coeff
