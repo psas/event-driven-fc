@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "flightsim.h"
 #include "rocket.h"
 
 static bool simulator_tick( double delta_t, struct simulator_state *sim ) {
