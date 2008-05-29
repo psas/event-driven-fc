@@ -45,15 +45,15 @@ struct rocket {
   struct vec velocity;
   struct vec accel;
 
-  unsigned double fuel;
+  double fuel;
 
 };
 
-static inline void vec_add( struct vec *a, struct vec b ) {
+static inline void vec_add( struct vec *a, struct vec *b ) {
   a->z += b->z;
 };
 
-static inline void vec_sub( struct vec *a, struct vec b ) {
+static inline void vec_sub( struct vec *a, struct vec *b ) {
   a->z -= b->z;
 };
 
@@ -61,7 +61,7 @@ static inline void vec_mul( struct vec *a, double b ) {
   a->z *= b;
 };
 
-static inline void permute_vec( struct vec *a, unsigned double sigma ) {
+static inline void permute_vec( struct vec *a, double sigma ) {
   a->z += gaussian( sigma );
 };
 

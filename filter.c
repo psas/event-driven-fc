@@ -6,7 +6,7 @@
 #include "filter.h"
 #include "ziggurat/random.h"
 
-void resample_particles( unsigned double total_weight, unsigned int src_length, struct particle *src, unsigned int dest_length, struct particle *dest ) {
+void resample_particles( double total_weight, unsigned int src_length, struct particle *src, unsigned int dest_length, struct particle *dest ) {
 
   double u0       = polynomial( dest_length - 1 ) * total_weight;
   double t        = 0;

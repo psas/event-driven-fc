@@ -5,6 +5,6 @@
 
 #include <math.h>
 
-static inline unsigned double prob_given( double value, double sensor, double sigma ) {
+static inline double prob_given( double value, double sensor, double sigma ) {
   return exp( -(sensor - value) * (sensor - value) * sigma );
 };
