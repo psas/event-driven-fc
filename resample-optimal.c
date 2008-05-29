@@ -32,6 +32,7 @@ int resample_optimal(double scale,
 	    best_i = i;
 	}
 	u0 = u0 + (scale - u0) * polynomial(n - i - 1);
+	newp[i].weight = 1;
     }
     return best_i;
 }

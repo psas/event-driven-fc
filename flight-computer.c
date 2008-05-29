@@ -22,6 +22,10 @@
 static const double z_accelerometer_sd = 0.01;
 static const double pressure_sd = 10;
 
+static const double prob_engine_trans = 0.01;
+static const double prob_drogue_trans = 0.01;
+static const double prob_main_trans  = 0.01;
+
 static const double z_acc_sd = 100;
 static const double z_vel_sd = 100;
 static const double z_pos_sd = 100;
@@ -59,6 +63,13 @@ void init(void)
 
 static void add_random_noise(double delta_t, struct particle *particle)
 {
+	if (uniform() < prob_engine_trans)
+		particle->s.engine_burning = ! particle->s.engine_burning;
+	else if (uniform() < prob_drogue_trans)
+		particle->s.drogue_chute_deployed = ! particle->s.drogue_chute_deployed;
+	else if (uniform() < prob_main_trans)
+		particle->s.main_chute_deployed = ! particle->s.main_chute_deployed;
+
 	particle->s.pos[Z] += delta_t * gaussian(z_pos_sd);
 	particle->s.vel[Z] += delta_t * gaussian(z_vel_sd);
 	particle->s.acc[Z] += delta_t * gaussian(z_acc_sd);
@@ -68,33 +79,25 @@ static void add_random_noise(double delta_t, struct particle *particle)
 void tick(double delta_t)
 {
 	double total_weight = 0.0;
-	struct rocket_state centroid = { };
+	int max_belief;
 	struct particle *particle;
 
 	for_each_particle(particle)
-	{
 		total_weight += particle->weight;
-		centroid.pos[Z] += particle->weight * particle->s.pos[Z];
-		centroid.vel[Z] += particle->weight * particle->s.vel[Z];
-		centroid.acc[Z] += particle->weight * particle->s.acc[Z];
-		centroid.mass   += particle->weight * particle->s.mass;
 
-		add_random_noise(delta_t, particle);
+	max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
 
-		update_rocket_state(&particle->s, delta_t);
-	}
-
-	centroid.pos[Z] /= total_weight;
-	centroid.vel[Z] /= total_weight;
-	centroid.acc[Z] /= total_weight;
-	centroid.mass   /= total_weight;
-
-	printf("BPF: total weight: %f  centroid Z pos, vel, acc: %f %f %f\n",
-	       total_weight, centroid.pos[Z], centroid.vel[Z], centroid.acc[Z]);
-
-	resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
+	printf("BPF: total weight: %f likely Z pos, vel, acc: %f %f %f (%s %s %s)\n",
+	       total_weight, particles[max_belief].s.pos[Z], particles[max_belief].s.vel[Z], particles[max_belief].s.acc[Z],
+	       particles[max_belief].s.engine_burning ? "BURN" : "", particles[max_belief].s.drogue_chute_deployed ? "DROGUE" : "", particles[max_belief].s.main_chute_deployed ? "MAIN" : "");
 	which_particles = !which_particles;
 	particles = particle_arrays[which_particles];
+
+	for_each_particle(particle)
+	{
+		add_random_noise(delta_t, particle);
+		update_rocket_state(&particle->s, delta_t);
+	}
 }
 
 void arm(void)
