@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <ziggurat/random.h>
+#include "ziggurat/random.h"
 
 #define EARTH_GRAVITY               9.80665
 #define AIR_DENSITY                 1.225
