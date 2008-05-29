@@ -63,12 +63,16 @@ void init(void)
 
 static void add_random_noise(double delta_t, struct particle *particle)
 {
-	if (uniform() < prob_engine_trans)
+	if (uniform() < prob_engine_trans) {
 		particle->s.engine_burning = ! particle->s.engine_burning;
-	else if (uniform() < prob_drogue_trans)
+		particle->weight *= 0.1;
+	} else if (uniform() < prob_drogue_trans) {
 		particle->s.drogue_chute_deployed = ! particle->s.drogue_chute_deployed;
-	else if (uniform() < prob_main_trans)
+		particle->weight *= 0.1;
+	} else if (uniform() < prob_main_trans) {
 		particle->s.main_chute_deployed = ! particle->s.main_chute_deployed;
+		particle->weight *= 0.1;
+	};
 
 	particle->s.pos[Z] += delta_t * gaussian(z_pos_sd);
 	particle->s.vel[Z] += delta_t * gaussian(z_vel_sd);
@@ -87,7 +91,7 @@ void tick(double delta_t)
 
 	max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
 
-	printf("BPF: total weight: %f likely Z pos, vel, acc: %f %f %f (%s %s %s)\n",
+	printf("BPF: total weight: %.2f likely Z pos, vel, acc: %.2f %.2f %.2f (%s %s %s)\n",
 	       total_weight, particles[max_belief].s.pos[Z], particles[max_belief].s.vel[Z], particles[max_belief].s.acc[Z],
 	       particles[max_belief].s.engine_burning ? "BURN" : "", particles[max_belief].s.drogue_chute_deployed ? "DROGUE" : "", particles[max_belief].s.main_chute_deployed ? "MAIN" : "");
 	which_particles = !which_particles;
