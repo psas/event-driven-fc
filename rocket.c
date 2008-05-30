@@ -54,18 +54,21 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
     };
   };
 
+  // Calculate the average mass for this timestep.
+  mass = (mass + rocket->fuel + DRY_MASS) / 2.0;
+
+  // If we're burning fuel, incorporate thrust.
+  if ( burn > 0 )
+    incorporate_thrust( rocket, mass, ENGINE_THRUST * burn );
+
   // Drag from the rocket body applies to all states.
-  incorporate_drag( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, ROCKET_DRAG, ROCKET_CROSS_SECTION );
+  incorporate_drag( rocket, mass, ROCKET_DRAG, ROCKET_CROSS_SECTION );
 
   // Incorporate drag from chute or rocket.
   if ( rocket->state == STATE_DROGUECHUTE || rocket->state == STATE_MAINCHUTE )
-    incorporate_drag( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, DROGUE_CHUTE_DRAG, DROGUE_CHUTE_CROSS_SECTION );
+    incorporate_drag( rocket, mass, DROGUE_CHUTE_DRAG, DROGUE_CHUTE_CROSS_SECTION );
   if ( rocket->state == STATE_MAINCHUTE )
-    incorporate_drag( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, MAIN_CHUTE_DRAG, MAIN_CHUTE_CROSS_SECTION );
-
-  // In the burn state, we thrust and consume fuel. If all the fuel is consumed, we force ourselves into coast state.
-  if ( burn > 0 )
-    incorporate_thrust( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, ENGINE_THRUST * burn );
+    incorporate_drag( rocket, mass, MAIN_CHUTE_DRAG, MAIN_CHUTE_CROSS_SECTION );
 
   // Integrate terms. I assume a linear transition from beginning of timestep to end of timestep.
   vec_add( &accel, &(rocket->accel) );
