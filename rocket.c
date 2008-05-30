@@ -80,7 +80,7 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   permute_vec( &(rocket->accel), delta_t );
 
   // Likewise, I don't have a particularly good justification for the probability of state transition.
-  if (rocket->state < STATE_COUNT && uniform( ) < 0.1)
+  if (rocket->state < STATE_COUNT - 1 && uniform( ) < (delta_t > 0.1 ? 0.1 : delta_t) )
     ++(rocket->state);
 
 };
@@ -94,7 +94,7 @@ const char * state_names[STATE_COUNT] =
   };
 
 void print_rocket( struct rocket *rocket ) {
-  printf( "p<%7.02f> v<%7.02f> a<%7.02f> f<%5.02f> s<%s>"
+  printf( "p<%7.02f> v<%7.02f> a<%7.02f> f<%4.02f> s<%s>"
     , rocket->position.z
     , rocket->velocity.z
     , rocket->accel.z

@@ -1,6 +1,7 @@
 // Copyright 2008 Julian Blake Kongslie
 // Licensed under the GNU GPL version 2.
 
+#include <assert.h>
 #include <stdio.h>
 
 #include "control.h"
@@ -20,16 +21,16 @@ void run_flight_control ( void ) {
   struct flightsim_state  flightsim = initial_sim;
 
   double  time_until_accelerometer    = ACCELEROMETER_FREQ;
-  double  time_until_pressure_sensor  = PRESSURE_SENSOR_FREQ;
+/*  double  time_until_pressure_sensor  = PRESSURE_SENSOR_FREQ;*/
 
   // The test functions.
   double test_accelerometer( struct rocket *state ) {
     return prob_given( state->accel.z, flightsim.rocket.accel.z, ACCELEROMETER_NOISE_SIGMA );
   };
 
-  double test_pressure_sensor( struct rocket *state ) {
-    return prob_given( altitude_to_pressure( state->position.z ), altitude_to_pressure( flightsim.rocket.position.z ), PRESSURE_SENSOR_NOISE_SIGMA );
-  };
+/*  double test_pressure_sensor( struct rocket *state ) {*/
+/*    return prob_given( altitude_to_pressure( state->position.z ), altitude_to_pressure( flightsim.rocket.position.z ), PRESSURE_SENSOR_NOISE_SIGMA );*/
+/*  };*/
 
   // Initialize all the particles to the launch state.
   // If we want to be able to get a lock from scratch during mid-flight, we need a better distribution here.
@@ -46,11 +47,19 @@ void run_flight_control ( void ) {
   do {
 
     // Update by the smaller of the two sensor times.
-    double delta_t = time_until_accelerometer < time_until_pressure_sensor ? time_until_accelerometer : time_until_pressure_sensor;
+/*    double delta_t = time_until_accelerometer < time_until_pressure_sensor ? time_until_accelerometer : time_until_pressure_sensor;*/
+    double delta_t = time_until_accelerometer;
+
+    assert( delta_t > 0 );
 
     // Advance the flight simulator. Break out if it says the simulation has concluded.
     if ( ! flightsim_tick( delta_t, &flightsim ) )
       break;
+
+    // Output the time.
+    printf( "%8.03f "
+      , flightsim.time
+      );
 
     // Summarize the current flight simulator state.
     print_rocket( &(flightsim.rocket) );
@@ -59,12 +68,34 @@ void run_flight_control ( void ) {
     update_particles( delta_t, PARTICLE_COUNT, filter[which_filter] );
 
     // Apply the relevant sensor updates.
-    double total_weight;
+    // The = 0 is to fix a bogus gcc warning.
+    double total_weight = 0;
 
-    if ( delta_t >= time_until_accelerometer )
+    time_until_accelerometer -= delta_t;
+/*    time_until_pressure_sensor -= delta_t;*/
+
+    if ( time_until_accelerometer <= 0 ) {
       total_weight = test_particles( test_accelerometer, PARTICLE_COUNT, filter[which_filter] );
-    if ( delta_t >= time_until_pressure_sensor )
-      total_weight = test_particles( test_pressure_sensor, PARTICLE_COUNT, filter[which_filter] );
+      time_until_accelerometer = ACCELEROMETER_FREQ;
+    };
+
+/*    if ( time_until_pressure_sensor <= 0 ) {*/
+/*      total_weight = test_particles( test_pressure_sensor, PARTICLE_COUNT, filter[which_filter] );*/
+/*      time_until_pressure_sensor = PRESSURE_SENSOR_FREQ;*/
+/*    };*/
+
+    // Query to find the most rocket state weights.
+    double state_weights[STATE_COUNT];
+    for ( int i = 0; i < STATE_COUNT; ++i )
+      state_weights[i] = 0;
+
+    for ( int i = 0; i < PARTICLE_COUNT; ++i )
+      state_weights[filter[which_filter][i].state.state] += filter[which_filter][i].weight;
+
+    printf( " (" );
+    for ( int i = 0; i < STATE_COUNT; ++i )
+      printf( " %3.0f", state_weights[i] );
+    printf( ")" );
 
     // Finish the summary line.
     printf( " w<%3.0f>\n"
