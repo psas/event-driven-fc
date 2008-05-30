@@ -111,10 +111,12 @@ void run_flight_control ( bool noisy ) {
     };
 
     // Make control decisions.
-    if ( query_particles( detect_apogee_in_coast, PARTICLE_COUNT, filter[which_filter] ) ) {
+    if ( query_particles( trigger_drogue_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "%8.03f release drogue chute\n", flightsim.time );
       release_drogue_chute( &flightsim );
-    } else if ( query_particles( detect_500m_in_fall, PARTICLE_COUNT, filter[which_filter] ) ) {
+    };
+
+    if ( query_particles( trigger_main_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "%8.03f release main chute\n", flightsim.time );
       release_main_chute( &flightsim );
     };

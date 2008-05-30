@@ -7,5 +7,5 @@
 
 #include "rocket.h"
 
-bool detect_apogee_in_coast( struct rocket *state );
-bool detect_500m_in_fall( struct rocket *state );
+bool trigger_drogue_chute( struct rocket *state );
+bool trigger_main_chute( struct rocket *state );
