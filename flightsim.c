@@ -17,6 +17,18 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
   if ( sim->time < 1 && sim->time + delta_t >= 1 )
     start_burn( sim );
 
+  // At the 3 second boundary, the engine dies early.
+  if ( sim->time < 3 && sim->time + delta_t >= 3 )
+    sim->rocket.state = STATE_COAST;
+
+  // And at the 6 second boundary, the engine restarts.
+  if ( sim->time < 6 && sim->time + delta_t >= 6 )
+    sim->rocket.state = STATE_BURN;
+
+  // When coming down, we lose the chutes at 250 meters.
+  if ( sim->rocket.state == STATE_MAINCHUTE && sim->rocket.position.z < 250 )
+    sim->rocket.state = STATE_COAST;
+
   // Update simulation time.
   sim->time += delta_t;
 
@@ -38,6 +50,13 @@ void start_burn( struct flightsim_state *sim ) {
 
 void release_drogue_chute( struct flightsim_state *sim ) {
 
+  static bool can_release = true;
+
+  if ( ! can_release )
+    return;
+
+  can_release = false;
+
   assert( sim->rocket.beeninair );
   assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
   assert( abs( sim->rocket.velocity.z ) <= 7 );
@@ -47,6 +66,13 @@ void release_drogue_chute( struct flightsim_state *sim ) {
 };
 
 void release_main_chute( struct flightsim_state *sim ) {
+
+  static bool can_release = true;
+
+  if ( ! can_release )
+    return;
+
+  can_release = false;
 
   assert( sim->rocket.beeninair );
   assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );

@@ -20,5 +20,6 @@ bool detect_500m_in_fall( struct rocket *state ) {
               ||  state->state == STATE_DROGUECHUTE
               )
           &&  state->position.z <= 500
+          &&  state->velocity.z <= 0
           );
 };
