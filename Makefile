@@ -11,5 +11,6 @@ ziggurat/%:
 
 clean:
 	git clean
+	make -C ziggurat clean
 
 .PHONY: clean
