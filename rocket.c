@@ -4,6 +4,8 @@
 //  Josh Triplett
 // Licensed under the GNU GPL version 2.
 
+#include <stdio.h>
+
 #include "rocket.h"
 #include "ziggurat/random.h"
 
@@ -77,4 +79,14 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   if (rocket->state < STATE_COUNT && uniform( ) < delta_t)
     ++(rocket->state);
 
+};
+
+void print_rocket( struct rocket *rocket ) {
+  printf( "p<%04.02d> v<%03.02d> a<%03.02d> f<%02.02d> s<%s>"
+    , rocket->position.z
+    , rocket->velocity.z
+    , rocket->accel.z
+    , rocket->fuel
+    , state_names[rocket->state]
+    );
 };
