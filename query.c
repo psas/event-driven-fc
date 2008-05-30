@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "control.h"
+#include "query.h"
 #include "rocket.h"
 
 bool detect_apogee_in_coast( struct rocket *state ) {
