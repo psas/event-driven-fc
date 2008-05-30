@@ -2,6 +2,7 @@
 // Licensed under the GNU GPL version 2.
 
 #include <stdbool.h>
+#include <math.h>
 
 #include "query.h"
 #include "rocket.h"
@@ -10,7 +11,7 @@ bool detect_apogee_in_coast( struct rocket *state ) {
   return  (   state->beeninair
           &&  state->state == STATE_COAST
           &&  state->position.z > 500
-          &&  state->velocity.z <= 5
+          &&  abs( state->velocity.z ) <= 5
           );
 };
 

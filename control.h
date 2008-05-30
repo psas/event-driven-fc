@@ -3,11 +3,13 @@
 
 #pragma once
 
-#define PARTICLE_COUNT  1000
+#include <stdbool.h>
 
-#define RESAMPLE_THRESHOLD  0.5
+#define PARTICLE_COUNT  500
+
+#define RESAMPLE_THRESHOLD  (1.0/3.0)
 
 #define ACCELEROMETER_FREQ    0.001
 #define PRESSURE_SENSOR_FREQ  0.1
 
-void run_flight_control( void );
+void run_flight_control( bool noisy );

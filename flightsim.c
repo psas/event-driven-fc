@@ -4,11 +4,14 @@
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "flightsim.h"
 #include "rocket.h"
 
 bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
+
+  static int old_state = STATE_COAST;
 
   // Update the rocket.
   update_rocket( delta_t, &(sim->rocket) );
@@ -31,6 +34,12 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
   // Update simulation time.
   sim->time += delta_t;
+
+  // Diagnostics.
+  if ( old_state != sim->rocket.state ) {
+    printf( "%8.03f now in state %s\n", sim->time, state_names[sim->rocket.state] );
+    old_state = sim->rocket.state;
+  };
 
   // Return false only if we have landed.
   if ( sim->rocket.beeninair && sim->rocket.position.z < 1 )

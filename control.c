@@ -13,7 +13,7 @@
 #include "sensor/accelerometer.h"
 #include "sensor/pressure_sensor.h"
 
-void run_flight_control ( void ) {
+void run_flight_control ( bool noisy ) {
 
   struct particle filter[2][PARTICLE_COUNT];
   unsigned int    which_filter = 0;
@@ -56,13 +56,17 @@ void run_flight_control ( void ) {
     if ( ! flightsim_tick( delta_t, &flightsim ) )
       break;
 
-    // Output the time.
-    printf( "%8.03f "
-      , flightsim.time
-      );
+    if ( noisy ) {
 
-    // Summarize the current flight simulator state.
-    print_rocket( &(flightsim.rocket) );
+      // Output the time.
+      printf( "%8.03f "
+        , flightsim.time
+        );
+
+      // Summarize the current flight simulator state.
+      print_rocket( &(flightsim.rocket) );
+
+    };
 
     // Advance the particle filter.
     update_particles( delta_t, PARTICLE_COUNT, filter[which_filter] );
@@ -84,36 +88,41 @@ void run_flight_control ( void ) {
       time_until_pressure_sensor = PRESSURE_SENSOR_FREQ;
     };
 
-    // Query to find the most rocket state weights.
-    double state_weights[STATE_COUNT];
-    for ( int i = 0; i < STATE_COUNT; ++i )
-      state_weights[i] = 0;
+    if ( noisy ) {
 
-    for ( int i = 0; i < PARTICLE_COUNT; ++i )
-      state_weights[filter[which_filter][i].state.state] += filter[which_filter][i].weight;
+      // Query to find the most rocket state weights.
+      double state_weights[STATE_COUNT];
+      for ( int i = 0; i < STATE_COUNT; ++i )
+        state_weights[i] = 0;
 
-    printf( " (" );
-    for ( int i = 0; i < STATE_COUNT; ++i )
-      printf( " %3.0f", 100 * state_weights[i] / total_weight );
-    printf( ")" );
+      for ( int i = 0; i < PARTICLE_COUNT; ++i )
+        state_weights[filter[which_filter][i].state.state] += filter[which_filter][i].weight;
 
-    // Finish the summary line.
-    printf( " w<%3.0f>\n"
-      , 100 * total_weight / PARTICLE_COUNT
-      );
+      printf( " (" );
+      for ( int i = 0; i < STATE_COUNT; ++i )
+        printf( " %3.0f", 100 * state_weights[i] / total_weight );
+      printf( ")" );
+
+      // Finish the summary line.
+      printf( " w<%3.0f>\n"
+        , 100 * total_weight / PARTICLE_COUNT
+        );
+
+    };
 
     // Make control decisions.
     if ( query_particles( detect_apogee_in_coast, PARTICLE_COUNT, filter[which_filter] ) ) {
-      printf( "release drogue chute\n" );
+      printf( "%8.03f release drogue chute\n", flightsim.time );
       release_drogue_chute( &flightsim );
     } else if ( query_particles( detect_500m_in_fall, PARTICLE_COUNT, filter[which_filter] ) ) {
-      printf( "release main chute\n" );
+      printf( "%8.03f release main chute\n", flightsim.time );
       release_main_chute( &flightsim );
     };
 
     // Resample if we drop below threshold.
     if ( total_weight <= RESAMPLE_THRESHOLD * PARTICLE_COUNT ) {
-      printf( "resample\n" );
+      if ( noisy )
+        printf( "%8.03f resample\n", flightsim.time );
       resample_particles( total_weight, PARTICLE_COUNT, filter[which_filter], PARTICLE_COUNT, filter[! which_filter] );
       which_filter = ! which_filter;
     };
