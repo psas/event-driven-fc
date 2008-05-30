@@ -7,13 +7,13 @@
 
 #include "rocket.h"
 
-struct simulator_state {
+struct flightsim_state {
   double        time;
   bool          beeninair
   struct rocket rocket;
 };
 
-static const struct simulator_state initial_sim =
+static const struct flightsim_state initial_sim =
   { .time       = 0
   , .beeninair  = false
   , .rocket     = initial_rocket
@@ -33,4 +33,4 @@ static const struct rocket initial_rocket =
   , .fuel     = FUEL_MASS
   };
 
-static bool simulator_tick( double delta_t, struct simulator_state *sim );
+static bool flightsim_tick( double delta_t, struct flightsim_state *sim );

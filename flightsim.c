@@ -6,7 +6,7 @@
 #include "flightsim.h"
 #include "rocket.h"
 
-static bool simulator_tick( double delta_t, struct simulator_state *sim ) {
+static bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
   // Update the rocket.
   update_rocket( delta_t, &(sim->rocket) );
@@ -25,5 +25,7 @@ static bool simulator_tick( double delta_t, struct simulator_state *sim ) {
   // Return false only if we have landed.
   if ( sim->beeninair && sim->rocket.position.z < 1 )
     return false;
+
+  return true;
 
 };
