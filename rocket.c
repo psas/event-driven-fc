@@ -9,7 +9,7 @@
 #include "rocket.h"
 #include "ziggurat/random.h"
 
-static inline void incorporate_drag( struct rocket *rocket, double drag_coeff, double cross_section ) {
+static inline void incorporate_drag( struct rocket *rocket, double mass, double drag_coeff, double cross_section ) {
 
   struct vec drag = {
     .z  = (rocket->velocity.z > 0 ? -1 : 1)
@@ -17,16 +17,16 @@ static inline void incorporate_drag( struct rocket *rocket, double drag_coeff, d
         * rocket->velocity.z * rocket->velocity.z
         * drag_coeff
         * cross_section
-        / ( rocket->fuel + DRY_MASS )
+        / mass
     };
 
   vec_add( &(rocket->accel), &drag );
 
 };
 
-static inline void incorporate_thrust( struct rocket *rocket, double thrust ) {
+static inline void incorporate_thrust( struct rocket *rocket, double mass, double thrust ) {
 
-  struct vec thrust_v = { .z = thrust / ( rocket->fuel + DRY_MASS ) };
+  struct vec thrust_v = { .z = thrust / mass };
 
   vec_add( &(rocket->accel), &thrust_v );
 
@@ -34,34 +34,38 @@ static inline void incorporate_thrust( struct rocket *rocket, double thrust ) {
 
 void update_rocket( double delta_t, struct rocket *rocket ) {
 
-  struct vec accel    = rocket->accel;
-  struct vec velocity = rocket->velocity;
+  struct vec  accel     = rocket->accel;
+  struct vec  velocity  = rocket->velocity;
+  double      mass      = rocket->fuel + DRY_MASS;
+  double      burn      = 0;
 
   // Gravity applies to all states.
   rocket->accel.z = -EARTH_GRAVITY;
 
-  // Drag from the rocket body applies to all states.
-  incorporate_drag( rocket, ROCKET_DRAG, ROCKET_CROSS_SECTION );
-
-  // Incorporate drag from chute or rocket.
-  if (rocket->state == STATE_DROGUECHUTE || rocket->state == STATE_MAINCHUTE)
-    incorporate_drag( rocket, DROGUE_CHUTE_DRAG, DROGUE_CHUTE_CROSS_SECTION );
-  if (rocket->state == STATE_MAINCHUTE)
-    incorporate_drag( rocket, MAIN_CHUTE_DRAG, MAIN_CHUTE_CROSS_SECTION );
-
-  // In the burn state, we thrust and consume fuel. If all the fuel is consumed, we force ourselves into coast state.
-  // Note that because we do this after calculating drag, we underestimate the drag deacceleration during a burn.
-  // And the engine thrust is calculated after subtracting spent fuel, so it is overestimated.
-  if (rocket->state == STATE_BURN) {
-    rocket->fuel -= BURN_RATE * delta_t;
-    if (rocket->fuel > 0)
-      incorporate_thrust( rocket, ENGINE_THRUST );
-    else {
-      rocket->fuel = 0;
-      incorporate_thrust( rocket, ENGINE_THRUST * (BURN_RATE * delta_t + rocket->fuel) );
+  // Burn fuel mass.
+  if ( rocket->state == STATE_BURN ) {
+    if ( BURN_RATE * delta_t > rocket->fuel ) {
+      burn = 1;
+      rocket->fuel -= BURN_RATE * delta_t;
+    } else {
+      burn = BURN_RATE * delta_t / rocket->fuel;
+      rocket->fuel  = 0;
       rocket->state = STATE_COAST;
     };
   };
+
+  // Drag from the rocket body applies to all states.
+  incorporate_drag( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, ROCKET_DRAG, ROCKET_CROSS_SECTION );
+
+  // Incorporate drag from chute or rocket.
+  if ( rocket->state == STATE_DROGUECHUTE || rocket->state == STATE_MAINCHUTE )
+    incorporate_drag( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, DROGUE_CHUTE_DRAG, DROGUE_CHUTE_CROSS_SECTION );
+  if ( rocket->state == STATE_MAINCHUTE )
+    incorporate_drag( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, MAIN_CHUTE_DRAG, MAIN_CHUTE_CROSS_SECTION );
+
+  // In the burn state, we thrust and consume fuel. If all the fuel is consumed, we force ourselves into coast state.
+  if ( burn > 0 )
+    incorporate_thrust( rocket, (mass + rocket->fuel + DRY_MASS) / 2.0, ENGINE_THRUST * burn );
 
   // Integrate terms. I assume a linear transition from beginning of timestep to end of timestep.
   vec_add( &accel, &(rocket->accel) );
@@ -98,24 +102,24 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   switch (rocket->state) {
 
     case STATE_COAST:
-      if (rocket->fuel > 0 && uniform() < 0.01)
+      if ( rocket->fuel > 0 && uniform() < 0.01 )
         rocket->state = STATE_BURN;
-      else if (rocket->beeninair && uniform() < 0.01)
+      else if ( rocket->beeninair && uniform() < 0.01 )
         rocket->state = STATE_DROGUECHUTE;
       break;
 
     case STATE_BURN:
-      if (uniform() < 0.01)
+      if ( uniform() < 0.01 )
         rocket->state = STATE_COAST;
       break;
 
     case STATE_DROGUECHUTE:
-      if (rocket->beeninair && uniform() < 0.01)
+      if ( rocket->beeninair && uniform() < 0.01 )
         rocket->state = STATE_MAINCHUTE;
       // fall through
 
     case STATE_MAINCHUTE:
-      if (uniform() < 0.01)
+      if ( uniform() < 0.01 )
         rocket->state = STATE_COAST;
       break;
 
