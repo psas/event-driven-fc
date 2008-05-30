@@ -81,7 +81,7 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
 
 };
 
-const char * state_names[] =
+const char * state_names[STATE_COUNT] =
   { "WAITING"
   , "BURN"
   , "COAST"
