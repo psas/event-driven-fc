@@ -19,7 +19,7 @@
  */
 
 #include <math.h>
-#include "pressure_sensor.h"
+#include "sensor/pressure_sensor.h"
 
 /* lapse rate and base altitude for each layer in the atmosphere */
 double lapse_rate[NUMBER_OF_LAYERS] = 
