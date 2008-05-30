@@ -10,4 +10,4 @@
 #define ACCELEROMETER_FREQ    0.001
 #define PRESSURE_SENSOR_FREQ  0.1
 
-void run_flight_control ( void );
+void run_flight_control( void );

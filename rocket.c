@@ -10,6 +10,7 @@
 #include "ziggurat/random.h"
 
 static inline void incorporate_drag( struct rocket *rocket, double drag_coeff, double cross_section ) {
+
   struct vec drag = {
     .z  = (rocket->velocity.z > 0 ? -1 : 1)
         * 0.5 * AIR_DENSITY
@@ -17,12 +18,17 @@ static inline void incorporate_drag( struct rocket *rocket, double drag_coeff, d
         * drag_coeff
         * cross_section
     };
+
   vec_add( &(rocket->accel), &drag );
+
 };
 
 static inline void incorporate_thrust( struct rocket *rocket, double thrust ) {
+
   struct vec thrust_v = { .z = thrust };
+
   vec_add( &(rocket->accel), &thrust_v );
+
 };
 
 void update_rocket( double delta_t, struct rocket *rocket ) {
