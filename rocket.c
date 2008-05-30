@@ -44,7 +44,7 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
 
   // Burn fuel mass.
   if ( rocket->state == STATE_BURN ) {
-    if ( BURN_RATE * delta_t > rocket->fuel ) {
+    if ( BURN_RATE * delta_t < rocket->fuel ) {
       burn = 1;
       rocket->fuel -= BURN_RATE * delta_t;
     } else {
