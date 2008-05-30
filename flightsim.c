@@ -11,8 +11,6 @@
 
 bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
-  static int old_state = STATE_COAST;
-
   // Update the rocket.
   update_rocket( delta_t, &(sim->rocket) );
 
@@ -36,9 +34,9 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
   sim->time += delta_t;
 
   // Diagnostics.
-  if ( old_state != sim->rocket.state ) {
+  if ( sim->old_state != sim->rocket.state ) {
     printf( "%8.03f now in state %s\n", sim->time, state_names[sim->rocket.state] );
-    old_state = sim->rocket.state;
+    sim->old_state = sim->rocket.state;
   };
 
   // Return false only if we have landed.
@@ -59,12 +57,10 @@ void start_burn( struct flightsim_state *sim ) {
 
 void release_drogue_chute( struct flightsim_state *sim ) {
 
-  static bool can_release = true;
-
-  if ( ! can_release )
+  if ( ! sim->can_drogue_chute )
     return;
 
-  can_release = false;
+  sim->can_drogue_chute = false;
 
   assert( sim->rocket.beeninair );
   assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
@@ -76,12 +72,10 @@ void release_drogue_chute( struct flightsim_state *sim ) {
 
 void release_main_chute( struct flightsim_state *sim ) {
 
-  static bool can_release = true;
-
-  if ( ! can_release )
+  if ( ! sim->can_main_chute )
     return;
 
-  can_release = false;
+  sim->can_main_chute = false;
 
   assert( sim->rocket.beeninair );
   assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
