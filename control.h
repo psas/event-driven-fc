@@ -3,9 +3,9 @@
 
 #pragma once
 
-#define PARTICLE_COUNT  1000
+#define PARTICLE_COUNT  100
 
-#define RESAMPLE_THRESHOLD  250
+#define RESAMPLE_THRESHOLD  25
 
 #define ACCELEROMETER_FREQ    0.001
 #define PRESSURE_SENSOR_FREQ  0.1

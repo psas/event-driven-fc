@@ -66,6 +66,11 @@ void run_flight_control ( void ) {
     if ( delta_t >= time_until_pressure_sensor )
       total_weight = test_particles( test_pressure_sensor, PARTICLE_COUNT, filter[which_filter] );
 
+    // Finish the summary line.
+    printf( " w<%3.0f>\n"
+      , total_weight
+      );
+
     // Make control decisions.
     if ( query_particles( detect_apogee_in_coast, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "release drogue chute\n" );

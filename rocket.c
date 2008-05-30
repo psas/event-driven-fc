@@ -66,6 +66,10 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
   if (rocket->position.z <= 0)
     rocket->position.z = 0;
 
+  // Clamp fuel.
+  if (rocket->fuel <= 0)
+    rocket->fuel = 0;
+
 };
 
 void permute_rocket( double delta_t, struct rocket *rocket ) {
@@ -90,7 +94,7 @@ const char * state_names[STATE_COUNT] =
   };
 
 void print_rocket( struct rocket *rocket ) {
-  printf( "p<%04.02f> v<%03.02f> a<%03.02f> f<%02.02f> s<%s>"
+  printf( "p<%7.02f> v<%7.02f> a<%7.02f> f<%5.02f> s<%s>"
     , rocket->position.z
     , rocket->velocity.z
     , rocket->accel.z
