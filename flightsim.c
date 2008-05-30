@@ -2,6 +2,7 @@
 // Licensed under the GNU GPL version 2.
 
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 
 #include "flightsim.h"
@@ -28,15 +29,20 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 };
 
 void start_burn( struct flightsim_state *sim ) {
+  assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_BURN );
   sim->rocket.state = STATE_BURN;
 };
 
 void release_drogue_chute( struct flightsim_state *sim ) {
   assert( sim->rocket.beeninair );
+  assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
+  assert( abs( sim->rocket.velocity.z ) <= 7 );
   sim->rocket.state = STATE_DROGUECHUTE;
 };
 
 void release_main_chute( struct flightsim_state *sim ) {
   assert( sim->rocket.beeninair );
+  assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
+  assert( sim->rocket.position.z <= 600 );
   sim->rocket.state = STATE_MAINCHUTE;
 };
