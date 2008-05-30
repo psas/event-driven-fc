@@ -63,8 +63,10 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
   vec_add( &(rocket->position), &velocity );
 
   // Clamp to ground.
-  if (rocket->position.z <= 0)
-    rocket->position.z = 0;
+  if (rocket->position.z <= 0) {
+    rocket->position.z  = 0;
+    rocket->velocity.z  = 0;
+  };
 
   // Clamp fuel.
   if (rocket->fuel <= 0)
@@ -78,10 +80,30 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   permute_vec( &(rocket->position), delta_t );
   permute_vec( &(rocket->velocity), delta_t );
   permute_vec( &(rocket->accel), delta_t );
+  rocket->fuel += gaussian( delta_t );
 
-  // Likewise, I don't have a particularly good justification for the probability of state transition.
-  if (rocket->state < STATE_COUNT - 1 && uniform( ) < (delta_t > 0.1 ? 0.1 : delta_t) )
-    ++(rocket->state);
+  // Likewise, I don't have a particularly good justification for these probabilities of state transitions.
+  switch (rocket->state) {
+
+    case STATE_WAITING:
+      if (rocket->try_burn && uniform() < 0.1)
+        rocket->state = STATE_BURN;
+      break;
+
+    case STATE_COAST:
+      if (rocket->try_droguechute && uniform() < 0.1)
+        rocket->state = STATE_DROGUECHUTE;
+      // fall through
+
+    case STATE_DROGUECHUTE:
+      if (rocket->try_mainchute && uniform() < 0.1)
+        rocket->state = STATE_MAINCHUTE;
+      break;
+
+    default:
+      ; // nothing
+
+  };
 
 };
 

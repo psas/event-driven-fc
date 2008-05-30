@@ -21,34 +21,36 @@ void run_flight_control ( void ) {
   struct flightsim_state  flightsim = initial_sim;
 
   double  time_until_accelerometer    = ACCELEROMETER_FREQ;
-/*  double  time_until_pressure_sensor  = PRESSURE_SENSOR_FREQ;*/
+  double  time_until_pressure_sensor  = PRESSURE_SENSOR_FREQ;
 
   // The test functions.
   double test_accelerometer( struct rocket *state ) {
     return prob_given( state->accel.z, flightsim.rocket.accel.z, ACCELEROMETER_NOISE_SIGMA );
   };
 
-/*  double test_pressure_sensor( struct rocket *state ) {*/
-/*    return prob_given( altitude_to_pressure( state->position.z ), altitude_to_pressure( flightsim.rocket.position.z ), PRESSURE_SENSOR_NOISE_SIGMA );*/
-/*  };*/
+  double test_pressure_sensor( struct rocket *state ) {
+    return prob_given( altitude_to_pressure( state->position.z ), altitude_to_pressure( flightsim.rocket.position.z ), PRESSURE_SENSOR_NOISE_SIGMA );
+  };
 
   // Initialize all the particles to the launch state.
   // If we want to be able to get a lock from scratch during mid-flight, we need a better distribution here.
   for ( int i = 0; i < PARTICLE_COUNT; ++i ) {
-    filter[which_filter][i].weight            = 1;
-    filter[which_filter][i].state.state       = STATE_WAITING;
-    filter[which_filter][i].state.position.z  = 0;
-    filter[which_filter][i].state.velocity.z  = 0;
-    filter[which_filter][i].state.accel.z     = 0;
-    filter[which_filter][i].state.fuel        = FUEL_MASS;
+    filter[which_filter][i].weight                = 1;
+    filter[which_filter][i].state.state           = STATE_WAITING;
+    filter[which_filter][i].state.try_burn        = true;
+    filter[which_filter][i].state.try_droguechute = false;
+    filter[which_filter][i].state.try_mainchute   = false;
+    filter[which_filter][i].state.position.z      = 0;
+    filter[which_filter][i].state.velocity.z      = 0;
+    filter[which_filter][i].state.accel.z         = 0;
+    filter[which_filter][i].state.fuel            = FUEL_MASS;
   };
 
   // This is the main control loop.
   do {
 
     // Update by the smaller of the two sensor times.
-/*    double delta_t = time_until_accelerometer < time_until_pressure_sensor ? time_until_accelerometer : time_until_pressure_sensor;*/
-    double delta_t = time_until_accelerometer;
+    double delta_t = time_until_accelerometer < time_until_pressure_sensor ? time_until_accelerometer : time_until_pressure_sensor;
 
     assert( delta_t > 0 );
 
@@ -72,17 +74,17 @@ void run_flight_control ( void ) {
     double total_weight = 0;
 
     time_until_accelerometer -= delta_t;
-/*    time_until_pressure_sensor -= delta_t;*/
+    time_until_pressure_sensor -= delta_t;
 
     if ( time_until_accelerometer <= 0 ) {
       total_weight = test_particles( test_accelerometer, PARTICLE_COUNT, filter[which_filter] );
       time_until_accelerometer = ACCELEROMETER_FREQ;
     };
 
-/*    if ( time_until_pressure_sensor <= 0 ) {*/
-/*      total_weight = test_particles( test_pressure_sensor, PARTICLE_COUNT, filter[which_filter] );*/
-/*      time_until_pressure_sensor = PRESSURE_SENSOR_FREQ;*/
-/*    };*/
+    if ( time_until_pressure_sensor <= 0 ) {
+      total_weight = test_particles( test_pressure_sensor, PARTICLE_COUNT, filter[which_filter] );
+      time_until_pressure_sensor = PRESSURE_SENSOR_FREQ;
+    };
 
     // Query to find the most rocket state weights.
     double state_weights[STATE_COUNT];
@@ -94,25 +96,29 @@ void run_flight_control ( void ) {
 
     printf( " (" );
     for ( int i = 0; i < STATE_COUNT; ++i )
-      printf( " %3.0f", state_weights[i] );
+      printf( " %3.0f", 100 * state_weights[i] / total_weight );
     printf( ")" );
 
     // Finish the summary line.
     printf( " w<%3.0f>\n"
-      , total_weight
+      , 100 * total_weight / PARTICLE_COUNT
       );
 
     // Make control decisions.
     if ( query_particles( detect_apogee_in_coast, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "release drogue chute\n" );
       release_drogue_chute( &flightsim );
+      for ( int i = 0; i < PARTICLE_COUNT; ++i )
+        filter[which_filter][i].state.try_droguechute = true;
     } else if ( query_particles( detect_500m_in_fall, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "release main chute\n" );
       release_main_chute( &flightsim );
+      for ( int i = 0; i < PARTICLE_COUNT; ++i )
+        filter[which_filter][i].state.try_mainchute = true;
     };
 
     // Resample if we drop below threshold.
-    if ( total_weight < RESAMPLE_THRESHOLD ) {
+    if ( total_weight <= RESAMPLE_THRESHOLD * PARTICLE_COUNT ) {
       printf( "resample\n" );
       resample_particles( total_weight, PARTICLE_COUNT, filter[which_filter], PARTICLE_COUNT, filter[! which_filter] );
       which_filter = ! which_filter;

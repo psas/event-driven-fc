@@ -31,13 +31,16 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 };
 
 void start_burn( struct flightsim_state *sim ) {
-  sim->rocket.state = STATE_BURN;
+  sim->rocket.state     = STATE_BURN;
+  sim->rocket.try_burn  = true;
 };
 
 void release_drogue_chute( struct flightsim_state *sim ) {
-  sim->rocket.state = STATE_DROGUECHUTE;
+  sim->rocket.state           = STATE_DROGUECHUTE;
+  sim->rocket.try_droguechute = true;
 };
 
 void release_main_chute( struct flightsim_state *sim ) {
-  sim->rocket.state = STATE_MAINCHUTE;
+  sim->rocket.state         = STATE_MAINCHUTE;
+  sim->rocket.try_mainchute = true;
 };

@@ -14,20 +14,23 @@ struct flightsim_state {
 };
 
 static const struct flightsim_state initial_sim =
-  { .time       = 0
-  , .beeninair  = false
-  , .rocket     =
-    { .state    = STATE_WAITING
-    , .position =
-      { .z      = 0
+  { .time               = 0
+  , .beeninair          = false
+  , .rocket             =
+    { .state            = STATE_WAITING
+    , .try_burn         = true
+    , .try_droguechute  = false
+    , .try_mainchute    = false
+    , .position         =
+      { .z              = 0
       }
-    , .velocity =
-      { .z      = 0
+    , .velocity         =
+      { .z              = 0
       }
-    , .accel    =
-      { .z      = 0
+    , .accel            =
+      { .z              = 0
       }
-    , .fuel     = FUEL_MASS
+    , .fuel             = FUEL_MASS
     }
   };
 
