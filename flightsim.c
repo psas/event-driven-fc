@@ -1,12 +1,13 @@
 // Copyright 2008 Julian Blake Kongslie
 // Licensed under the GNU GPL version 2.
 
+#include <assert.h>
 #include <stdbool.h>
 
 #include "flightsim.h"
 #include "rocket.h"
 
-static bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
+bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
   // Update the rocket.
   update_rocket( delta_t, &(sim->rocket) );
@@ -16,8 +17,8 @@ static bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
     sim->beeninair = true;
 
   // If we cross the 1 second boundary while in the waiting state, start the burn.
-  if ( sim->time < 1 && sim->time + delta_t >= 1 && sim->rocket.state == STATE_WAITING )
-    sim->rocket.state = STATE_BURN;
+  if ( sim->time < 1 && sim->time + delta_t >= 1 )
+    start_burn( sim );
 
   // Update simulation time.
   sim->time += delta_t;
@@ -28,4 +29,19 @@ static bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
   return true;
 
+};
+
+void start_burn( struct flightsim_state *sim ) {
+  assert( sim->rocket.state == STATE_WAITING );
+  sim->rocket.state = STATE_BURN;
+};
+
+void release_drogue_chute( struct flightsim_state *sim ) {
+  assert( sim->rocket.state == STATE_COAST );
+  sim->rocket.state = STATE_DROGUECHUTE;
+};
+
+void release_main_chute( struct flightsim_state *sim ) {
+  assert( sim->rocket.state == STATE_DROGUECHUTE );
+  sim->rocket.state = STATE_MAINCHUTE;
 };

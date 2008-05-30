@@ -9,28 +9,30 @@
 
 struct flightsim_state {
   double        time;
-  bool          beeninair
+  bool          beeninair;
   struct rocket rocket;
 };
 
 static const struct flightsim_state initial_sim =
   { .time       = 0
   , .beeninair  = false
-  , .rocket     = initial_rocket
+  , .rocket     =
+    { .state    = STATE_WAITING
+    , .position =
+      { .z      = 0
+      }
+    , .velocity =
+      { .z      = 0
+      }
+    , .accel    =
+      { .z      = 0
+      }
+    , .fuel     = FUEL_MASS
+    }
   };
 
-static const struct rocket initial_rocket =
-  { .state    = STATE_WAITING
-  , .position =
-    { .z      = 0
-    }
-  , .velocity =
-    { .z      = 0
-    }
-  , .accel    =
-    { .z      = 0
-    }
-  , .fuel     = FUEL_MASS
-  };
+bool flightsim_tick( double delta_t, struct flightsim_state *sim );
 
-static bool flightsim_tick( double delta_t, struct flightsim_state *sim );
+void start_burn( struct flightsim_state *sim );
+void release_drogue_chute( struct flightsim_state *sim );
+void release_main_chute( struct flightsim_state *sim );

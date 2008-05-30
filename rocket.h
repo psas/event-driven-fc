@@ -49,14 +49,6 @@ struct rocket {
 
 };
 
-static const char * state_names[] =
-  { "WAITING"
-  , "BURN"
-  , "COAST"
-  , "DROGUECHUTE"
-  , "MAINCHUTE"
-  };
-
 static inline void vec_add( struct vec *a, struct vec *b ) {
   a->z += b->z;
 };
@@ -76,5 +68,7 @@ static inline void permute_vec( struct vec *a, double sigma ) {
 void update_rocket( double delta_t, struct rocket *rocket );
 
 void permute_rocket( double delta_t, struct rocket *rocket );
+
+const char * state_names[];
 
 void print_rocket( struct rocket *rocket );

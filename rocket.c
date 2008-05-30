@@ -81,6 +81,14 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
 
 };
 
+const char * state_names[] =
+  { "WAITING"
+  , "BURN"
+  , "COAST"
+  , "DROGUECHUTE"
+  , "MAINCHUTE"
+  };
+
 void print_rocket( struct rocket *rocket ) {
   printf( "p<%04.02f> v<%03.02f> a<%03.02f> f<%02.02f> s<%s>"
     , rocket->position.z
