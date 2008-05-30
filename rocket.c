@@ -48,7 +48,7 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
       burn = 1;
       rocket->fuel -= BURN_RATE * delta_t;
     } else {
-      burn = BURN_RATE * delta_t / rocket->fuel;
+      burn = rocket->fuel / (BURN_RATE * delta_t);
       rocket->fuel  = 0;
       rocket->state = STATE_COAST;
     };
