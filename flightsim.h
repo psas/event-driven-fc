@@ -20,13 +20,19 @@ static const struct flightsim_state initial_sim =
   , .rocket           =
     { .state          = STATE_COAST
     , .position       =
-      { .z            = 0
+      { .x            = 0
+      , .y            = 0
+      , .z            = 0
       }
     , .velocity       =
-      { .z            = 0
+      { .x            = 0
+      , .y            = 0
+      , .z            = 0
       }
     , .accel          =
-      { .z            = 0
+      { .x            = 0
+      , .y            = 0
+      , .z            = 0
       }
     , .fuel           = FUEL_MASS
     , .beeninair      = false

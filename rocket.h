@@ -27,7 +27,7 @@
 #define BURN_RATE                   (5.9/4.3)
 
 struct vec {
-  double z;
+  double x, y, z;
 };
 
 struct rocket {

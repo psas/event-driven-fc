@@ -11,13 +11,15 @@
 
 static inline void incorporate_drag( struct rocket *rocket, double mass, double drag_coeff, double cross_section ) {
 
-  struct vec drag = {
-    .z  = (rocket->velocity.z > 0 ? -1 : 1)
-        * 0.5 * AIR_DENSITY
-        * rocket->velocity.z * rocket->velocity.z
-        * drag_coeff
-        * cross_section
-        / mass
+  struct vec drag =
+    { .x  = 0
+    , .y  = 0
+    , .z  = (rocket->velocity.z > 0 ? -1 : 1)
+          * 0.5 * AIR_DENSITY
+          * rocket->velocity.z * rocket->velocity.z
+          * drag_coeff
+          * cross_section
+          / mass
     };
 
   vec_add( &(rocket->accel), &drag );
@@ -26,7 +28,11 @@ static inline void incorporate_drag( struct rocket *rocket, double mass, double 
 
 static inline void incorporate_thrust( struct rocket *rocket, double mass, double thrust ) {
 
-  struct vec thrust_v = { .z = thrust / mass };
+  struct vec thrust_v =
+    { .x = 0
+    , .y = 0
+    , .z = thrust / mass
+    };
 
   vec_add( &(rocket->accel), &thrust_v );
 
