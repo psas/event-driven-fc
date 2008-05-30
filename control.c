@@ -37,9 +37,6 @@ void run_flight_control ( void ) {
   for ( int i = 0; i < PARTICLE_COUNT; ++i ) {
     filter[which_filter][i].weight                = 1;
     filter[which_filter][i].state.state           = STATE_WAITING;
-    filter[which_filter][i].state.try_burn        = true;
-    filter[which_filter][i].state.try_droguechute = false;
-    filter[which_filter][i].state.try_mainchute   = false;
     filter[which_filter][i].state.position.z      = 0;
     filter[which_filter][i].state.velocity.z      = 0;
     filter[which_filter][i].state.accel.z         = 0;
@@ -108,13 +105,9 @@ void run_flight_control ( void ) {
     if ( query_particles( detect_apogee_in_coast, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "release drogue chute\n" );
       release_drogue_chute( &flightsim );
-      for ( int i = 0; i < PARTICLE_COUNT; ++i )
-        filter[which_filter][i].state.try_droguechute = true;
     } else if ( query_particles( detect_500m_in_fall, PARTICLE_COUNT, filter[which_filter] ) ) {
       printf( "release main chute\n" );
       release_main_chute( &flightsim );
-      for ( int i = 0; i < PARTICLE_COUNT; ++i )
-        filter[which_filter][i].state.try_mainchute = true;
     };
 
     // Resample if we drop below threshold.

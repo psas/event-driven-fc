@@ -85,18 +85,28 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   // Likewise, I don't have a particularly good justification for these probabilities of state transitions.
   switch (rocket->state) {
 
+    // fall throughs are intentional
+
     case STATE_WAITING:
-      if (rocket->try_burn && uniform() < 0.1)
+      if (uniform() < 0.01)
         rocket->state = STATE_BURN;
-      break;
+
+    case STATE_BURN:
+      // Early flame-out.
+      if (uniform() < 0.01)
+        rocket->state = STATE_COAST;
 
     case STATE_COAST:
-      if (rocket->try_droguechute && uniform() < 0.1)
+      // Re-ignition.
+      if (rocket->fuel > 0 && uniform() < 0.01) {
+        rocket->state = STATE_BURN;
+        break;
+      };
+      if (uniform() < 0.01)
         rocket->state = STATE_DROGUECHUTE;
-      // fall through
 
     case STATE_DROGUECHUTE:
-      if (rocket->try_mainchute && uniform() < 0.1)
+      if (uniform() < 0.01)
         rocket->state = STATE_MAINCHUTE;
       break;
 

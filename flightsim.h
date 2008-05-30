@@ -18,9 +18,6 @@ static const struct flightsim_state initial_sim =
   , .beeninair          = false
   , .rocket             =
     { .state            = STATE_WAITING
-    , .try_burn         = true
-    , .try_droguechute  = false
-    , .try_mainchute    = false
     , .position         =
       { .z              = 0
       }

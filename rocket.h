@@ -42,11 +42,6 @@ struct rocket {
     , STATE_COUNT       // Not a real state; used to count the states.
     } state;
 
-  // These are set if the transition to that state is allowed.
-  bool try_burn;
-  bool try_droguechute;
-  bool try_mainchute;
-
   // These are in a global referential frame.
   struct vec position;
   struct vec velocity;

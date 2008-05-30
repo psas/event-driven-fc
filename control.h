@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define PARTICLE_COUNT  100
+#define PARTICLE_COUNT  1000
 
 #define RESAMPLE_THRESHOLD  (1.0/3.0)
 
