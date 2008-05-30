@@ -35,12 +35,13 @@ void run_flight_control ( void ) {
   // Initialize all the particles to the launch state.
   // If we want to be able to get a lock from scratch during mid-flight, we need a better distribution here.
   for ( int i = 0; i < PARTICLE_COUNT; ++i ) {
-    filter[which_filter][i].weight                = 1;
-    filter[which_filter][i].state.state           = STATE_WAITING;
-    filter[which_filter][i].state.position.z      = 0;
-    filter[which_filter][i].state.velocity.z      = 0;
-    filter[which_filter][i].state.accel.z         = 0;
-    filter[which_filter][i].state.fuel            = FUEL_MASS;
+    filter[which_filter][i].weight            = 1;
+    filter[which_filter][i].state.state       = STATE_COAST;
+    filter[which_filter][i].state.position.z  = 0;
+    filter[which_filter][i].state.velocity.z  = 0;
+    filter[which_filter][i].state.accel.z     = 0;
+    filter[which_filter][i].state.fuel        = FUEL_MASS;
+    filter[which_filter][i].state.beeninair   = false;
   };
 
   // This is the main control loop.

@@ -7,14 +7,16 @@
 #include "rocket.h"
 
 bool detect_apogee_in_coast( struct rocket *state ) {
-  return  (   state->state == STATE_COAST
+  return  (   state->beeninair
+          &&  state->state == STATE_COAST
           &&  state->position.z > 500
           &&  state->velocity.z <= 5
           );
 };
 
 bool detect_500m_in_fall( struct rocket *state ) {
-  return  (   (   state->state == STATE_COAST
+  return  (   state->beeninair
+          &&  (   state->state == STATE_COAST
               ||  state->state == STATE_DROGUECHUTE
               )
           &&  state->position.z <= 500

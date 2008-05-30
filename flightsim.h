@@ -9,25 +9,24 @@
 
 struct flightsim_state {
   double        time;
-  bool          beeninair;
   struct rocket rocket;
 };
 
 static const struct flightsim_state initial_sim =
-  { .time               = 0
-  , .beeninair          = false
-  , .rocket             =
-    { .state            = STATE_WAITING
-    , .position         =
-      { .z              = 0
+  { .time         = 0
+  , .rocket       =
+    { .state      = STATE_COAST
+    , .position   =
+      { .z        = 0
       }
-    , .velocity         =
-      { .z              = 0
+    , .velocity   =
+      { .z        = 0
       }
-    , .accel            =
-      { .z              = 0
+    , .accel      =
+      { .z        = 0
       }
-    , .fuel             = FUEL_MASS
+    , .fuel       = FUEL_MASS
+    , .beeninair  = false
     }
   };
 

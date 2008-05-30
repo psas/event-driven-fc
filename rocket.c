@@ -66,7 +66,9 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
   if (rocket->position.z <= 0) {
     rocket->position.z  = 0;
     rocket->velocity.z  = 0;
-  };
+  // Note if we make it above ground.
+  } else if (rocket->position.z >= 10)
+    rocket->beeninair = true;
 
   // Clamp fuel.
   if (rocket->fuel <= 0)
@@ -85,29 +87,26 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   // Likewise, I don't have a particularly good justification for these probabilities of state transitions.
   switch (rocket->state) {
 
-    // fall throughs are intentional
-
-    case STATE_WAITING:
-      if (uniform() < 0.01)
+    case STATE_COAST:
+      if (rocket->fuel > 0 && uniform() < 0.01)
         rocket->state = STATE_BURN;
+      else if (rocket->beeninair && uniform() < 0.01)
+        rocket->state = STATE_DROGUECHUTE;
+      break;
 
     case STATE_BURN:
-      // Early flame-out.
       if (uniform() < 0.01)
         rocket->state = STATE_COAST;
-
-    case STATE_COAST:
-      // Re-ignition.
-      if (rocket->fuel > 0 && uniform() < 0.01) {
-        rocket->state = STATE_BURN;
-        break;
-      };
-      if (uniform() < 0.01)
-        rocket->state = STATE_DROGUECHUTE;
+      break;
 
     case STATE_DROGUECHUTE:
-      if (uniform() < 0.01)
+      if (rocket->beeninair && uniform() < 0.01)
         rocket->state = STATE_MAINCHUTE;
+      // fall through
+
+    case STATE_MAINCHUTE:
+      if (uniform() < 0.01)
+        rocket->state = STATE_COAST;
       break;
 
     default:
@@ -118,9 +117,8 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
 };
 
 const char * state_names[STATE_COUNT] =
-  { "WAITING"
+  { "COAST"
   , "BURN"
-  , "COAST"
   , "DROGUECHUTE"
   , "MAINCHUTE"
   };

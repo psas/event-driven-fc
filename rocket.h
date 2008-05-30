@@ -33,9 +33,8 @@ struct vec {
 struct rocket {
 
   enum
-    { STATE_WAITING     // Waiting to launch.
+    { STATE_COAST       // Coasting.
     , STATE_BURN        // Launching, engine burn.
-    , STATE_COAST       // Coasting.
     , STATE_DROGUECHUTE // Drogue chute deployed.
     , STATE_MAINCHUTE   // Main chute deployed.
 
@@ -48,6 +47,8 @@ struct rocket {
   struct vec accel;
 
   double fuel;
+
+  bool beeninair;
 
 };
 
