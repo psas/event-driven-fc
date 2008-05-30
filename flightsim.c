@@ -48,9 +48,9 @@ void start_burn( struct flightsim_state *sim ) {
 
 };
 
-void release_drogue_chute( struct flightsim_state *sim ) {
+void deploy_drogue_chute( struct flightsim_state *sim ) {
 
-  printf( "%8.03f release_drogue_chute\n", sim->time );
+  printf( "%8.03f deploy_drogue_chute\n", sim->time );
 
   if ( ! sim->can_drogue_chute )
     return;
@@ -61,9 +61,9 @@ void release_drogue_chute( struct flightsim_state *sim ) {
 
 };
 
-void release_main_chute( struct flightsim_state *sim ) {
+void deploy_main_chute( struct flightsim_state *sim ) {
 
-  printf( "%8.03f release_main_chute\n", sim->time );
+  printf( "%8.03f deploy_main_chute\n", sim->time );
 
   if ( ! sim->can_main_chute )
     return;

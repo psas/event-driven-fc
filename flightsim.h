@@ -47,5 +47,5 @@ static const struct flightsim_state initial_sim =
 bool flightsim_tick( double delta_t, struct flightsim_state *sim );
 
 void start_burn( struct flightsim_state *sim );
-void release_drogue_chute( struct flightsim_state *sim );
-void release_main_chute( struct flightsim_state *sim );
+void deploy_drogue_chute( struct flightsim_state *sim );
+void deploy_main_chute( struct flightsim_state *sim );

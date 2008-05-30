@@ -121,11 +121,11 @@ void run_flight_control ( bool noisy ) {
 
     // Make control decisions.
     if ( query_particles( trigger_drogue_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
-      release_drogue_chute( &flightsim );
+      deploy_drogue_chute( &flightsim );
     };
 
     if ( query_particles( trigger_main_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
-      release_main_chute( &flightsim );
+      deploy_main_chute( &flightsim );
     };
 
     // Resample if we drop below threshold.
