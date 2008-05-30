@@ -32,14 +32,9 @@ struct vec {
 
 struct rocket {
 
-  enum
-    { STATE_COAST       // Coasting.
-    , STATE_BURN        // Launching, engine burn.
-    , STATE_DROGUECHUTE // Drogue chute deployed.
-    , STATE_MAINCHUTE   // Main chute deployed.
-
-    , STATE_COUNT       // Not a real state; used to count the states.
-    } state;
+  bool  engine_burn;
+  bool  drogue_chute_deployed;
+  bool  main_chute_deployed;
 
   // These are in a global referential frame.
   struct vec position;
@@ -79,7 +74,5 @@ static inline void permute_vec( struct vec *a, double sigma ) {
 void update_rocket( double delta_t, struct rocket *rocket );
 
 void permute_rocket( double delta_t, struct rocket *rocket );
-
-extern const char * state_names[STATE_COUNT];
 
 void print_rocket( struct rocket *rocket );

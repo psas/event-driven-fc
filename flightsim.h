@@ -16,30 +16,32 @@ struct flightsim_state {
 };
 
 static const struct flightsim_state initial_sim =
-  { .time             = 0
-  , .rocket           =
-    { .state          = STATE_COAST
-    , .position       =
-      { .x            = 0
-      , .y            = 0
-      , .z            = 0
+  { .time                     = 0
+  , .rocket                   =
+    { .engine_burn            = false
+    , .drogue_chute_deployed  = false
+    , .main_chute_deployed    = false
+    , .position               =
+      { .x                    = 0
+      , .y                    = 0
+      , .z                    = 0
       }
-    , .velocity       =
-      { .x            = 0
-      , .y            = 0
-      , .z            = 0
+    , .velocity               =
+      { .x                    = 0
+      , .y                    = 0
+      , .z                    = 0
       }
-    , .accel          =
-      { .x            = 0
-      , .y            = 0
-      , .z            = 0
+    , .accel                  =
+      { .x                    = 0
+      , .y                    = 0
+      , .z                    = 0
       }
-    , .fuel           = FUEL_MASS
-    , .beeninair      = false
+    , .fuel                   = FUEL_MASS
+    , .beeninair              = false
     }
-  , .can_drogue_chute = true
-  , .can_main_chute   = true
-  , .old_state        = -1
+  , .can_drogue_chute         = true
+  , .can_main_chute           = true
+  , .old_state                = -1
   };
 
 bool flightsim_tick( double delta_t, struct flightsim_state *sim );

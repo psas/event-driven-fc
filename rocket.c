@@ -45,18 +45,22 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
   double      mass      = rocket->fuel + DRY_MASS;
   double      burn      = 0;
 
+  // Main chute implies drogue chute.
+  if ( rocket->main_chute_deployed )
+    rocket->drogue_chute_deployed = true;
+
   // Gravity applies to all states.
   rocket->accel.z = -EARTH_GRAVITY;
 
   // Burn fuel mass.
-  if ( rocket->state == STATE_BURN ) {
+  if ( rocket->engine_burn ) {
     if ( BURN_RATE * delta_t < rocket->fuel ) {
       burn = 1;
       rocket->fuel -= BURN_RATE * delta_t;
     } else {
       burn = rocket->fuel / (BURN_RATE * delta_t);
-      rocket->fuel  = 0;
-      rocket->state = STATE_COAST;
+      rocket->fuel        = 0;
+      rocket->engine_burn = false;
     };
   };
 
@@ -71,9 +75,9 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
   incorporate_drag( rocket, mass, ROCKET_DRAG, ROCKET_CROSS_SECTION );
 
   // Incorporate drag from chute or rocket.
-  if ( rocket->state == STATE_DROGUECHUTE || rocket->state == STATE_MAINCHUTE )
+  if ( rocket->drogue_chute_deployed )
     incorporate_drag( rocket, mass, DROGUE_CHUTE_DRAG, DROGUE_CHUTE_CROSS_SECTION );
-  if ( rocket->state == STATE_MAINCHUTE )
+  if ( rocket->main_chute_deployed )
     incorporate_drag( rocket, mass, MAIN_CHUTE_DRAG, MAIN_CHUTE_CROSS_SECTION );
 
   // Integrate terms. I assume a linear transition from beginning of timestep to end of timestep.
@@ -108,50 +112,24 @@ void permute_rocket( double delta_t, struct rocket *rocket ) {
   rocket->fuel += gaussian( delta_t );
 
   // Likewise, I don't have a particularly good justification for these probabilities of state transitions.
-  switch (rocket->state) {
+  if ( uniform() < 0.01 )
+    if ( rocket->engine_burn || rocket->fuel > 0 )
+      rocket->engine_burn = ! rocket->engine_burn;
 
-    case STATE_COAST:
-      if ( rocket->fuel > 0 && uniform() < 0.01 )
-        rocket->state = STATE_BURN;
-      else if ( rocket->beeninair && uniform() < 0.01 )
-        rocket->state = STATE_DROGUECHUTE;
-      break;
+  if ( rocket->beeninair && uniform() < 0.01 )
+    rocket->drogue_chute_deployed = ! rocket->drogue_chute_deployed;
 
-    case STATE_BURN:
-      if ( uniform() < 0.01 )
-        rocket->state = STATE_COAST;
-      break;
-
-    case STATE_DROGUECHUTE:
-      if ( rocket->beeninair && uniform() < 0.01 )
-        rocket->state = STATE_MAINCHUTE;
-      // fall through
-
-    case STATE_MAINCHUTE:
-      if ( uniform() < 0.01 )
-        rocket->state = STATE_COAST;
-      break;
-
-    default:
-      ; // nothing
-
-  };
+  if ( rocket->beeninair && uniform() < 0.01 )
+    rocket->main_chute_deployed = ! rocket->main_chute_deployed;
 
 };
 
-const char * state_names[STATE_COUNT] =
-  { "COAST"
-  , "BURN"
-  , "DROGUECHUTE"
-  , "MAINCHUTE"
-  };
-
 void print_rocket( struct rocket *rocket ) {
-  printf( "p<%7.02f %7.02f %7.02f> v<%7.02f %7.02f %7.02f> a<%7.02f %7.02f %7.02f> f<%4.02f> s<%s>"
+  printf( "p<%7.02f %7.02f %7.02f> v<%7.02f %7.02f %7.02f> a<%7.02f %7.02f %7.02f> f<%4.02f> s<%s-%s-%s>"
     , rocket->position.x, rocket->position.y, rocket->position.z
     , rocket->velocity.x, rocket->velocity.y, rocket->velocity.z
     , rocket->accel.x, rocket->accel.y, rocket->accel.z
     , rocket->fuel
-    , state_names[rocket->state]
+    , rocket->engine_burn?"BURN":"", rocket->drogue_chute_deployed?"DROGUE":"", rocket->main_chute_deployed?"MAIN":""
     );
 };

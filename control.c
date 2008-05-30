@@ -35,13 +35,15 @@ void run_flight_control ( bool noisy ) {
   // Initialize all the particles to the launch state.
   // If we want to be able to get a lock from scratch during mid-flight, we need a better distribution here.
   for ( int i = 0; i < PARTICLE_COUNT; ++i ) {
-    filter[which_filter][i].weight            = 1;
-    filter[which_filter][i].state.state       = STATE_COAST;
-    filter[which_filter][i].state.position.z  = 0;
-    filter[which_filter][i].state.velocity.z  = 0;
-    filter[which_filter][i].state.accel.z     = 0;
-    filter[which_filter][i].state.fuel        = FUEL_MASS;
-    filter[which_filter][i].state.beeninair   = false;
+    filter[which_filter][i].weight                      = 1;
+    filter[which_filter][i].state.engine_burn           = false;
+    filter[which_filter][i].state.drogue_chute_deployed = false;
+    filter[which_filter][i].state.main_chute_deployed   = false;
+    filter[which_filter][i].state.position.z            = 0;
+    filter[which_filter][i].state.velocity.z            = 0;
+    filter[which_filter][i].state.accel.z               = 0;
+    filter[which_filter][i].state.fuel                  = FUEL_MASS;
+    filter[which_filter][i].state.beeninair             = false;
   };
 
   // This is the main control loop.
@@ -91,17 +93,24 @@ void run_flight_control ( bool noisy ) {
     if ( noisy ) {
 
       // Query to find the most rocket state weights.
-      double state_weights[STATE_COUNT];
-      for ( int i = 0; i < STATE_COUNT; ++i )
-        state_weights[i] = 0;
+      double engine_burn_weight           = 0;
+      double drogue_chute_deployed_weight = 0;
+      double main_chute_deployed_weight   = 0;
 
-      for ( int i = 0; i < PARTICLE_COUNT; ++i )
-        state_weights[filter[which_filter][i].state.state] += filter[which_filter][i].weight;
+      for ( int i = 0; i < PARTICLE_COUNT; ++i ) {
+        if (filter[which_filter][i].state.engine_burn)
+          engine_burn_weight += filter[which_filter][i].weight;
+        if (filter[which_filter][i].state.drogue_chute_deployed)
+          drogue_chute_deployed_weight += filter[which_filter][i].weight;
+        if (filter[which_filter][i].state.main_chute_deployed)
+          main_chute_deployed_weight += filter[which_filter][i].weight;
+      };
 
-      printf( " (" );
-      for ( int i = 0; i < STATE_COUNT; ++i )
-        printf( " %3.0f", 100 * state_weights[i] / total_weight );
-      printf( ")" );
+      printf( " (%3.0f %3.0f %3.0f)"
+        , 100 * engine_burn_weight / total_weight
+        , 100 * drogue_chute_deployed_weight / total_weight
+        , 100 * main_chute_deployed_weight / total_weight
+        );
 
       // Finish the summary line.
       printf( " w<%3.0f>\n"
@@ -112,12 +121,10 @@ void run_flight_control ( bool noisy ) {
 
     // Make control decisions.
     if ( query_particles( trigger_drogue_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
-      printf( "%8.03f release drogue chute\n", flightsim.time );
       release_drogue_chute( &flightsim );
     };
 
     if ( query_particles( trigger_main_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
-      printf( "%8.03f release main chute\n", flightsim.time );
       release_main_chute( &flightsim );
     };
 

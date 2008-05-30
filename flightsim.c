@@ -1,7 +1,6 @@
 // Copyright 2008 Julian Blake Kongslie
 // Licensed under the GNU GPL version 2.
 
-#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -20,24 +19,18 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
   // At the 3 second boundary, the engine dies early.
   if ( sim->time < 3 && sim->time + delta_t >= 3 )
-    sim->rocket.state = STATE_COAST;
+    sim->rocket.engine_burn = false;
 
   // And at the 6 second boundary, the engine restarts.
   if ( sim->time < 6 && sim->time + delta_t >= 6 )
-    sim->rocket.state = STATE_BURN;
+    sim->rocket.engine_burn = true;
 
   // When coming down, we lose the chutes at 250 meters.
-  if ( sim->rocket.state == STATE_MAINCHUTE && sim->rocket.position.z < 250 )
-    sim->rocket.state = STATE_COAST;
+  if ( sim->rocket.main_chute_deployed && sim->rocket.position.z < 250 )
+    sim->rocket.drogue_chute_deployed = sim->rocket.main_chute_deployed = false;
 
   // Update simulation time.
   sim->time += delta_t;
-
-  // Diagnostics.
-  if ( sim->old_state != sim->rocket.state ) {
-    printf( "%8.03f now in state %s\n", sim->time, state_names[sim->rocket.state] );
-    sim->old_state = sim->rocket.state;
-  };
 
   // Return false only if we have landed.
   if ( sim->rocket.beeninair && sim->rocket.position.z < 1 )
@@ -49,38 +42,34 @@ bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
 void start_burn( struct flightsim_state *sim ) {
 
-  assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_BURN );
+  printf( "%8.03f start_burn\n", sim->time );
 
-  sim->rocket.state = STATE_BURN;
+  sim->rocket.engine_burn = true;
 
 };
 
 void release_drogue_chute( struct flightsim_state *sim ) {
+
+  printf( "%8.03f release_drogue_chute\n", sim->time );
 
   if ( ! sim->can_drogue_chute )
     return;
 
   sim->can_drogue_chute = false;
 
-  assert( sim->rocket.beeninair );
-  assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
-  assert( abs( sim->rocket.velocity.z ) <= 7 );
-
-  sim->rocket.state = STATE_DROGUECHUTE;
+  sim->rocket.drogue_chute_deployed = true;
 
 };
 
 void release_main_chute( struct flightsim_state *sim ) {
+
+  printf( "%8.03f release_main_chute\n", sim->time );
 
   if ( ! sim->can_main_chute )
     return;
 
   sim->can_main_chute = false;
 
-  assert( sim->rocket.beeninair );
-  assert( sim->rocket.state == STATE_COAST || sim->rocket.state == STATE_DROGUECHUTE || sim->rocket.state == STATE_MAINCHUTE );
-  assert( sim->rocket.position.z <= 600 );
-
-  sim->rocket.state = STATE_MAINCHUTE;
+  sim->rocket.main_chute_deployed = true;
 
 };
