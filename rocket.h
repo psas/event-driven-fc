@@ -69,6 +69,6 @@ void update_rocket( double delta_t, struct rocket *rocket );
 
 void permute_rocket( double delta_t, struct rocket *rocket );
 
-const char * state_names[STATE_COUNT];
+extern const char * state_names[STATE_COUNT];
 
 void print_rocket( struct rocket *rocket );
