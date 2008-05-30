@@ -147,10 +147,10 @@ const char * state_names[STATE_COUNT] =
   };
 
 void print_rocket( struct rocket *rocket ) {
-  printf( "p<%7.02f> v<%7.02f> a<%7.02f> f<%4.02f> s<%s>"
-    , rocket->position.z
-    , rocket->velocity.z
-    , rocket->accel.z
+  printf( "p<%7.02f %7.02f %7.02f> v<%7.02f %7.02f %7.02f> a<%7.02f %7.02f %7.02f> f<%4.02f> s<%s>"
+    , rocket->position.x, rocket->position.y, rocket->position.z
+    , rocket->velocity.x, rocket->velocity.y, rocket->velocity.z
+    , rocket->accel.x, rocket->accel.y, rocket->accel.z
     , rocket->fuel
     , state_names[rocket->state]
     );

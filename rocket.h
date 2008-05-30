@@ -53,18 +53,26 @@ struct rocket {
 };
 
 static inline void vec_add( struct vec *a, struct vec *b ) {
+  a->x += b->x;
+  a->y += b->y;
   a->z += b->z;
 };
 
 static inline void vec_sub( struct vec *a, struct vec *b ) {
+  a->x -= b->x;
+  a->y -= b->y;
   a->z -= b->z;
 };
 
 static inline void vec_mul( struct vec *a, double b ) {
+  a->x *= b;
+  a->y *= b;
   a->z *= b;
 };
 
 static inline void permute_vec( struct vec *a, double sigma ) {
+  a->x += gaussian( sigma );
+  a->y += gaussian( sigma );
   a->z += gaussian( sigma );
 };
 
