@@ -3,6 +3,9 @@ OBJECTS := control.o filter.o flightsim.o main.o query.o rocket.o sensor/pressur
 sim: ${OBJECTS}
 	gcc -Wall -Werror --std=gnu99 -O3 -o $@ $+ -lm
 
+sim.out: sim
+	time ./sim -v > $@
+
 %.o: %.c
 	gcc -Wall -Werror --std=gnu99 -O3 -c -o $@ $<
 
@@ -13,4 +16,4 @@ clean:
 	git clean
 	make -C ziggurat clean
 
-.PHONY: clean
+.PHONY: clean sim.out
