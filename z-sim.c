@@ -101,11 +101,6 @@ static void update_simulator(void)
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
 				rocket_state.pos[Z], rocket_state.vel[Z], rocket_state.acc[Z]);
-	omniscience_9000(rocket_state.pos,
-			rocket_state.vel,
-			rocket_state.acc,
-			rocket_state.rotpos,
-			rocket_state.rotvel);
 	z_accelerometer(rocket_state.acc[Z]);
 	pressure_sensor(altitude_to_pressure(rocket_state.pos[Z]));
 	if(!engine_ignited && t >= LAUNCH_TIME)

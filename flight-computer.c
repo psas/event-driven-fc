@@ -32,6 +32,7 @@ static const double z_pos_sd = 100;
 static const double mass_sd  = 1;
 
 #define PARTICLE_COUNT 1000
+#define PARTICLE_THRESHOLD (PARTICLE_COUNT/2)
 static struct particle particle_arrays[2][PARTICLE_COUNT];
 static struct particle *particles = particle_arrays[0];
 static unsigned int which_particles = 0;
@@ -80,6 +81,71 @@ static void add_random_noise(double delta_t, struct particle *particle)
 	particle->s.mass   += delta_t * gaussian(mass_sd);
 }
 
+static void update_state(void)
+{
+	struct particle *particle;
+	unsigned int count = 0;
+
+	switch(state)
+	{
+		case STATE_PREFLIGHT:
+			/* FIXME: check if pointing in the right direction. */
+			for_each_particle(particle)
+				if(particle->s.pos[Z] <= 2.0)
+					count++;
+			can_arm = count > PARTICLE_THRESHOLD;
+			break;
+		case STATE_ARMED:
+			for_each_particle(particle)
+				if(particle->s.acc[Z] >= 1.0)
+					count++;
+			if(count > PARTICLE_THRESHOLD)
+				change_state(STATE_BOOST);
+			break;
+		case STATE_BOOST:
+			ignite(false);
+			for_each_particle(particle)
+				if(particle->s.acc[Z] <= 0.0)
+					count++;
+			if(count > PARTICLE_THRESHOLD)
+				change_state(STATE_COAST);
+			break;
+		case STATE_COAST:
+			for_each_particle(particle)
+				if(fabs(particle->s.vel[Z]) <= 5.0)
+					count++;
+			if(count > PARTICLE_THRESHOLD)
+			{
+				drogue_chute(true);
+				change_state(STATE_DROGUE_DESCENT);
+			}
+			break;
+		case STATE_DROGUE_DESCENT:
+			drogue_chute(false);
+			for_each_particle(particle)
+				if(particle->s.pos[Z] <= 500.0)
+					count++;
+			if(count > PARTICLE_THRESHOLD)
+			{
+				main_chute(true);
+				change_state(STATE_MAIN_DESCENT);
+			}
+			break;
+		case STATE_MAIN_DESCENT:
+			main_chute(false);
+			for_each_particle(particle)
+				if(particle->s.pos[Z] <= 2.0
+				   && fabs(particle->s.vel[Z]) <= 0.01)
+					count++;
+			if(count > PARTICLE_THRESHOLD)
+				change_state(STATE_RECOVERY);
+			break;
+		case STATE_RECOVERY:
+			/* profit(); */
+			break;
+	}
+}
+
 void tick(double delta_t)
 {
 	double total_weight = 0.0;
@@ -90,6 +156,8 @@ void tick(double delta_t)
 		total_weight += particle->weight;
 
 	max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
+
+	update_state();
 
 	printf("BPF: total weight: %.2f likely Z pos, vel, acc: %.2f %.2f %.2f (%s %s %s)\n",
 	       total_weight, particles[max_belief].s.pos[Z], particles[max_belief].s.vel[Z], particles[max_belief].s.acc[Z],
@@ -123,50 +191,6 @@ void launch(void)
 		ignite(true);
 	else
 		enqueue_error("Cannot launch: not armed.");
-}
-
-void omniscience_9000(vec3 pos, vec3 vel, vec3 acc,
-                      vec3 rotpos, vec3 rotvel)
-{
-	switch(state)
-	{
-		case STATE_PREFLIGHT:
-			can_arm = pos[Z] <= 2.0
-				  && rotpos[X] <= 0.01 && rotpos[Y] <= 0.01;
-			break;
-		case STATE_ARMED:
-			if(acc[Z] >= 1.0)
-				change_state(STATE_BOOST);
-			break;
-		case STATE_BOOST:
-			ignite(false);
-			if(acc[Z] <= 0.0)
-				change_state(STATE_COAST);
-			break;
-		case STATE_COAST:
-			if(fabs(vel[Z]) <= 5.0)
-			{
-				drogue_chute(true);
-				change_state(STATE_DROGUE_DESCENT);
-			}
-			break;
-		case STATE_DROGUE_DESCENT:
-			drogue_chute(false);
-			if(pos[Z] <= 500.0)
-			{
-				main_chute(true);
-				change_state(STATE_MAIN_DESCENT);
-			}
-			break;
-		case STATE_MAIN_DESCENT:
-			main_chute(false);
-			if(pos[Z] <= 2.0 && fabs(vel[Z]) <= 0.01)
-				change_state(STATE_RECOVERY);
-			break;
-		case STATE_RECOVERY:
-			/* profit(); */
-			break;
-	}
 }
 
 void z_accelerometer(double z_accelerometer)
