@@ -92,7 +92,7 @@ void update_rocket( double delta_t, struct rocket *rocket ) {
   // Clamp to ground.
   if (rocket->position.z <= 0) {
     rocket->position.z  = 0;
-    rocket->velocity.z  = 0;
+    rocket->velocity.z  = rocket->velocity.z > 0 ? rocket->velocity.z : 0;
   // Note if we make it above ground.
   } else if (rocket->position.z >= 10)
     rocket->beeninair = true;

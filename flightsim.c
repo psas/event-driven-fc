@@ -10,6 +10,10 @@
 
 bool flightsim_tick( double delta_t, struct flightsim_state *sim ) {
 
+  // Simulate minor turbulence.
+  if ( sim->rocket.beeninair )
+    permute_vec( &(sim->rocket.accel), delta_t * 0.01 );
+
   // Update the rocket.
   update_rocket( delta_t, &(sim->rocket) );
 

@@ -119,13 +119,15 @@ void run_flight_control ( bool noisy ) {
 
     };
 
-    // Make control decisions.
-    if ( query_particles( trigger_drogue_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
-      deploy_drogue_chute( &flightsim );
-    };
+    // Make control decisions as long as we are reasonably confident.
+    if ( total_weight >= CONTROL_THRESHOLD * PARTICLE_COUNT ) {
 
-    if ( query_particles( trigger_main_chute, PARTICLE_COUNT, filter[which_filter] ) ) {
-      deploy_main_chute( &flightsim );
+      if ( query_particles( trigger_drogue_chute, PARTICLE_COUNT, filter[which_filter] ) )
+        deploy_drogue_chute( &flightsim );
+
+      if ( query_particles( trigger_main_chute, PARTICLE_COUNT, filter[which_filter] ) )
+        deploy_main_chute( &flightsim );
+
     };
 
     // Resample if we drop below threshold.
