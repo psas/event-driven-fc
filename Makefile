@@ -2,11 +2,12 @@ ZIGGURAT_SOURCES = ziggurat/isaac.c ziggurat/random.c ziggurat/normal.c ziggurat
 SOURCES = z-sim.c flight-computer.c physics.c pressure_sensor.c resample-optimal.c $(ZIGGURAT_SOURCES)
 ZIGGURAT_HEADERS = ziggurat/random.h
 HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h resample.h vec.h gprob.h $(ZIGGURAT_HEADERS)
+CFLAGS = -fwhole-program
 
 all: z-sim
 
 z-sim: $(SOURCES) $(HEADERS)
-	$(CC) -Wall -Werror -O3 -ffast-math -fwhole-program -combine $(SOURCES) -lm -o $@
+	$(CC) -Wall -Werror -O3 -ffast-math $(CFLAGS) -combine $(SOURCES) -lm -o $@
 
 ziggurat/normal_tab.c:
 	make -C ziggurat normal_tab.c
