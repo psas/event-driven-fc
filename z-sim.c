@@ -123,6 +123,7 @@ static void update_simulator(void)
 
 static void init_rocket_state(struct rocket_state *rocket_state)
 {
+	/* TODO: accept an initial orientation for leaving the tower */
 	rocket_state->mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 }
 

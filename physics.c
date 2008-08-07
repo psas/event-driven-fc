@@ -20,6 +20,7 @@ static double sign(double x)
 
 static void gravity_force(struct rocket_state *rocket_state, vec3 force)
 {
+	/* TODO: apply gravity at the approximate center of mass */
 	force[X] = force[Y] = 0;
 	force[Z] = -rocket_state->mass * EARTH_GRAVITY;
 }
@@ -66,6 +67,7 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 	if(rocket_state->engine_burning)
 		rocket_state->mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
 
+	/* TODO: add coefficient of normal force at the center of pressure */
 	if(rocket_state->engine_burning || rocket_state->pos[Z] > 0.0)
 	{
 		gravity_force(rocket_state, tmp);
