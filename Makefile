@@ -1,7 +1,7 @@
 ZIGGURAT_SOURCES = ziggurat/isaac.c ziggurat/random.c ziggurat/normal.c ziggurat/normal_tab.c ziggurat/polynomial.c ziggurat/polynomial_tab.c
-SOURCES = z-sim.c flight-computer.c physics.c pressure_sensor.c resample-optimal.c $(ZIGGURAT_SOURCES)
+SOURCES = z-sim.c flight-computer.c physics.c pressure_sensor.c resample-optimal.c mat.c $(ZIGGURAT_SOURCES)
 ZIGGURAT_HEADERS = ziggurat/random.h
-HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h resample.h vec.h gprob.h $(ZIGGURAT_HEADERS)
+HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h resample.h mat.h vec.h gprob.h $(ZIGGURAT_HEADERS)
 CFLAGS = -fwhole-program
 
 all: z-sim

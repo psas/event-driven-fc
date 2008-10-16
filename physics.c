@@ -85,11 +85,15 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
+	vec3 rotvel;
 	for(i = 0; i < 3; ++i)
 	{
 		rocket_state->pos[i] += rocket_state->vel[i] * delta_t;
 		rocket_state->vel[i] += rocket_state->acc[i] * delta_t;
 		rocket_state->acc[i] = force[i] / rocket_state->mass;
-		rocket_state->rotpos[i] += rocket_state->rotvel[i] * delta_t;
+		rotvel[i] = rocket_state->rotvel[i] * delta_t;
 	}
+	mat3 rotdelta;
+	axis_angle_to_mat3(&rotdelta, rotvel);
+	mat3_mul(&rocket_state->rotpos, &rocket_state->rotpos, &rotdelta);
 }

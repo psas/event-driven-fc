@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "mat.h"
 #include "vec.h"
 
 typedef uint64_t microseconds;
@@ -18,8 +19,9 @@ static const microseconds ENGINE_BURN_TIME = 4300000;
 
 struct rocket_state
 {
-	vec3 pos, vel, acc;
-	vec3 rotpos, rotvel, rotacc;
+	vec3 pos, vel, acc;  /* Earth-centered Earth-fixed */
+	mat3 rotpos;         /* Launch-centered Earth-fixed */
+	vec3 rotvel;         /* Launch-centered Earth-fixed */
 	double mass;
 	bool engine_burning;
 	bool drogue_chute_deployed;
