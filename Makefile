@@ -4,7 +4,9 @@ ZIGGURAT_HEADERS = ziggurat/random.h
 HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h resample.h mat.h vec.h gprob.h $(ZIGGURAT_HEADERS)
 CFLAGS = -fwhole-program
 
-all: z-sim
+TARGETS = z-sim coordtest
+
+all: $(TARGETS)
 
 z-sim: $(SOURCES) $(HEADERS)
 	$(CC) -Wall -Werror -O3 -ffast-math $(CFLAGS) -combine $(SOURCES) -lm -o $@
@@ -15,6 +17,15 @@ ziggurat/normal_tab.c:
 ziggurat/polynomial_tab.c:
 	make -C ziggurat polynomial_tab.c
 
+COORDTEST_SOURCES = coord.c coordtest.c mat.c
+COORDTEST_HEADERS = vec.h mat.h coord.h
+
+coordtest: $(COORDTEST_SOURCES) $(COORDTEST_HEADERS)
+	$(CC) -Wall -Werror -O3 -ffast-math $(CFLAGS) -combine $(COORDTEST_SOURCES) -lm -o $@
+
+test: coordtest
+	./coordtest
+
 clean:
 	make -C ziggurat clean
-	rm -f z-sim
+	rm -f $(TARGETS)

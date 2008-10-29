@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 #include "mat.h"
 
 /* http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToMatrix/ */
@@ -42,4 +43,14 @@ void mat3_mul(mat3 *dst, mat3 *left, mat3 *right)
 			for(k = 0; k < 3; ++k)
 				tmp.component[i][j] += left->component[i][k] * right->component[k][j];
 	*dst = tmp;
+}
+
+void mat3_vec3_mul(vec3 dst, const mat3 *left, const vec3 right)
+{
+	vec3 tmp = { };
+	int i, k;
+	for(i = 0; i < 3; ++i)
+		for(k = 0; k < 3; ++k)
+			tmp[i] += left->component[i][k] * right[k];
+	memcpy(dst, tmp, sizeof(tmp));
 }
