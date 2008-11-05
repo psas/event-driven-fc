@@ -23,9 +23,4 @@ static inline double vec_abs(vec3 v)
 	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
 
-/* A WGS84 geodetic coordinate in units of radians and meters. */
-typedef struct geodetic {
-	double latitude, longitude, altitude;
-} geodetic;
-
 #endif /* VEC_H */
