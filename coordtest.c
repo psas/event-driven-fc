@@ -80,20 +80,13 @@ int main(void)
 		++fail;
 	}
 
-	make_origin(&v, &rot, geodetic_ref);
+	rot = make_LTP_rotation(geodetic_ref);
 	if(!mat3_similar(rotation_ref, rot))
 	{
-		printf("make_origin rotation matrix returned was\n");
+		printf("make_LTP_rotation rotation matrix returned was\n");
 		mat3_show(rot);
 		printf("but expected\n");
 		mat3_show(rotation_ref);
-		++fail;
-	}
-	if(!vec3_similar(ecef_ref, v))
-	{
-		printf("make_origin origin returned was <%f,%f,%f>, expected <%f,%f,%f>\n",
-		       v.x, v.y, v.z,
-		       ecef_ref.x, ecef_ref.y, ecef_ref.z);
 		++fail;
 	}
 

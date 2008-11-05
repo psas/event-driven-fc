@@ -35,14 +35,13 @@ vec3 geodetic_to_ECEF(geodetic geodetic)
 	}};
 }
 
-void make_origin(vec3 *origin, mat3 *rotation, geodetic geodetic)
+mat3 make_LTP_rotation(geodetic geodetic)
 {
-	*origin = geodetic_to_ECEF(geodetic);
 	double sinlong = sin(geodetic.longitude);
 	double coslong = cos(geodetic.longitude);
 	double sinlat = sin(geodetic.latitude);
 	double coslat = cos(geodetic.latitude);
-	*rotation = (mat3) { .component = {
+	return (mat3){ .component = {
 		{          -sinlong,           coslong,      0 },
 		{ -coslong * sinlat, -sinlat * sinlong, coslat },
 		{  coslat * coslong,  coslat * sinlong, sinlat },
