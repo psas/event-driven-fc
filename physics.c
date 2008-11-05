@@ -61,10 +61,12 @@ static vec3 thrust_force(struct rocket_state *rocket_state)
 
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
-	vec3 force = {{ 0, 0, 0 }};
+	vec3 force;
 
 	if(rocket_state->engine_burning)
 		rocket_state->mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
+
+	force = thrust_force(rocket_state);
 
 	/* TODO: add coefficient of normal force at the center of pressure */
 	if(rocket_state->engine_burning || rocket_state->pos.z > 0.0)
@@ -77,7 +79,6 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 		rocket_state->pos.z = 0.0;
 		rocket_state->vel.z = 0.0;
 	}
-	force = vec_add(force, thrust_force(rocket_state));
 
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
