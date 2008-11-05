@@ -75,10 +75,10 @@ static void add_random_noise(double delta_t, struct particle *particle)
 		particle->weight *= 0.1;
 	};
 
-	particle->s.pos[Z] += delta_t * gaussian(z_pos_sd);
-	particle->s.vel[Z] += delta_t * gaussian(z_vel_sd);
-	particle->s.acc[Z] += delta_t * gaussian(z_acc_sd);
-	particle->s.mass   += delta_t * gaussian(mass_sd);
+	particle->s.pos.z += delta_t * gaussian(z_pos_sd);
+	particle->s.vel.z += delta_t * gaussian(z_vel_sd);
+	particle->s.acc.z += delta_t * gaussian(z_acc_sd);
+	particle->s.mass  += delta_t * gaussian(mass_sd);
 }
 
 static void update_state(void)
@@ -91,13 +91,13 @@ static void update_state(void)
 		case STATE_PREFLIGHT:
 			/* FIXME: check if pointing in the right direction. */
 			for_each_particle(particle)
-				if(particle->s.pos[Z] <= 2.0)
+				if(particle->s.pos.z <= 2.0)
 					count++;
 			can_arm = count > PARTICLE_THRESHOLD;
 			break;
 		case STATE_ARMED:
 			for_each_particle(particle)
-				if(particle->s.acc[Z] >= 1.0)
+				if(particle->s.acc.z >= 1.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_BOOST);
@@ -105,14 +105,14 @@ static void update_state(void)
 		case STATE_BOOST:
 			ignite(false);
 			for_each_particle(particle)
-				if(particle->s.acc[Z] <= 0.0)
+				if(particle->s.acc.z <= 0.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_COAST);
 			break;
 		case STATE_COAST:
 			for_each_particle(particle)
-				if(fabs(particle->s.vel[Z]) <= 5.0)
+				if(fabs(particle->s.vel.z) <= 5.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 			{
@@ -123,7 +123,7 @@ static void update_state(void)
 		case STATE_DROGUE_DESCENT:
 			drogue_chute(false);
 			for_each_particle(particle)
-				if(particle->s.pos[Z] <= 500.0)
+				if(particle->s.pos.z <= 500.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 			{
@@ -134,8 +134,8 @@ static void update_state(void)
 		case STATE_MAIN_DESCENT:
 			main_chute(false);
 			for_each_particle(particle)
-				if(particle->s.pos[Z] <= 2.0
-				   && fabs(particle->s.vel[Z]) <= 0.01)
+				if(particle->s.pos.z <= 2.0
+				   && fabs(particle->s.vel.z) <= 0.01)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_RECOVERY);
@@ -160,7 +160,7 @@ void tick(double delta_t)
 	update_state();
 
 	printf("BPF: total weight: %.2f likely Z pos, vel, acc: %.2f %.2f %.2f (%s %s %s)\n",
-	       total_weight, particles[max_belief].s.pos[Z], particles[max_belief].s.vel[Z], particles[max_belief].s.acc[Z],
+	       total_weight, particles[max_belief].s.pos.z, particles[max_belief].s.vel.z, particles[max_belief].s.acc.z,
 	       particles[max_belief].s.engine_burning ? "BURN" : "", particles[max_belief].s.drogue_chute_deployed ? "DROGUE" : "", particles[max_belief].s.main_chute_deployed ? "MAIN" : "");
 	which_particles = !which_particles;
 	particles = particle_arrays[which_particles];
@@ -198,7 +198,7 @@ void z_accelerometer(double z_accelerometer)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		particle->weight *= gprob(particle->s.acc[Z] - z_accelerometer, z_accelerometer_sd);
+		particle->weight *= gprob(particle->s.acc.z - z_accelerometer, z_accelerometer_sd);
 	}
 }
 
@@ -208,6 +208,6 @@ void pressure_sensor(double pressure)
 	double altitude = pressure_to_altitude(pressure);
 	for_each_particle(particle)
 	{
-		particle->weight *= gprob(particle->s.pos[Z] - altitude, pressure_sd);
+		particle->weight *= gprob(particle->s.pos.z - altitude, pressure_sd);
 	}
 }

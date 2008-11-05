@@ -18,14 +18,13 @@ static double sign(double x)
 	return 0;
 }
 
-static void gravity_force(struct rocket_state *rocket_state, vec3 force)
+static vec3 gravity_force(struct rocket_state *rocket_state)
 {
 	/* TODO: apply gravity at the approximate center of mass */
-	force[X] = force[Y] = 0;
-	force[Z] = -rocket_state->mass * EARTH_GRAVITY;
+	return (vec3){{ 0, 0, -rocket_state->mass * EARTH_GRAVITY }};
 }
 
-static void drag_force(struct rocket_state *rocket_state, vec3 force)
+static vec3 drag_force(struct rocket_state *rocket_state)
 {
 	double drag_coefficient, cross_section;
         if(rocket_state->main_chute_deployed)
@@ -43,55 +42,53 @@ static void drag_force(struct rocket_state *rocket_state, vec3 force)
 		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
 		cross_section = ROCKET_CROSS_SECTION;
 	}
-	force[X] = force[Y] = 0;
-	force[Z] = -sign(rocket_state->vel[Z]) * 0.5 * AIR_DENSITY
-		* rocket_state->vel[Z] * rocket_state->vel[Z]
-		* cross_section * drag_coefficient;
+	return (vec3){{
+		.x = 0,
+		.y = 0,
+		.z = -sign(rocket_state->vel.z) * 0.5 * AIR_DENSITY
+		   * rocket_state->vel.z * rocket_state->vel.z
+		   * cross_section * drag_coefficient
+	}};
 }
 
-static void thrust_force(struct rocket_state *rocket_state, vec3 force)
+static vec3 thrust_force(struct rocket_state *rocket_state)
 {
-	force[X] = force[Y] = 0;
 	if(rocket_state->engine_burning)
-	        force[Z] = ENGINE_THRUST;
+	        return (vec3){{ 0, 0, ENGINE_THRUST }};
 	else
-		force[Z] = 0;
+	        return (vec3){{ 0, 0, 0 }};
 }
 
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
 	int i;
-	vec3 force = { 0.0, 0.0, 0.0 };
-	vec3 tmp;
+	vec3 force = {{ 0, 0, 0 }};
 
 	if(rocket_state->engine_burning)
 		rocket_state->mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
 
 	/* TODO: add coefficient of normal force at the center of pressure */
-	if(rocket_state->engine_burning || rocket_state->pos[Z] > 0.0)
+	if(rocket_state->engine_burning || rocket_state->pos.z > 0.0)
 	{
-		gravity_force(rocket_state, tmp);
-		vec_add(force, tmp);
-		drag_force(rocket_state, tmp);
-		vec_add(force, tmp);
+		force = vec_add(force, gravity_force(rocket_state));
+		force = vec_add(force, drag_force(rocket_state));
 	}
 	else
 	{
-		rocket_state->pos[Z] = 0.0;
-		rocket_state->vel[Z] = 0.0;
+		rocket_state->pos.z = 0.0;
+		rocket_state->vel.z = 0.0;
 	}
-	thrust_force(rocket_state, tmp);
-	vec_add(force, tmp);
+	force = vec_add(force, thrust_force(rocket_state));
 
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
 	vec3 rotvel;
 	for(i = 0; i < 3; ++i)
 	{
-		rocket_state->pos[i] += rocket_state->vel[i] * delta_t;
-		rocket_state->vel[i] += rocket_state->acc[i] * delta_t;
-		rocket_state->acc[i] = force[i] / rocket_state->mass;
-		rotvel[i] = rocket_state->rotvel[i] * delta_t;
+		rocket_state->pos.component[i] += rocket_state->vel.component[i] * delta_t;
+		rocket_state->vel.component[i] += rocket_state->acc.component[i] * delta_t;
+		rocket_state->acc.component[i] = force.component[i] / rocket_state->mass;
+		rotvel.component[i] = rocket_state->rotvel.component[i] * delta_t;
 	}
 	mat3 rotdelta;
 	axis_angle_to_mat3(&rotdelta, rotvel);

@@ -5,21 +5,31 @@
 
 #include "coord.h"
 
+static const double DOUBLE_ERROR_BOUND = 0.000001;
+
 static bool vec3_similar(const vec3 expected, const vec3 actual)
 {
 	int i;
 	for(i = 0; i < 3; ++i)
-		if(fabs(expected[i] - actual[i]) > 0.000001)
+		if(fabs(expected.component[i] - actual.component[i]) > DOUBLE_ERROR_BOUND)
 			return false;
 	return true;
 }
 
+static bool geodetic_similar(geodetic expected, geodetic actual)
+{
+	return (fabs(expected.latitude  - actual.latitude ) < DOUBLE_ERROR_BOUND)
+	    && (fabs(expected.longitude - actual.longitude) < DOUBLE_ERROR_BOUND)
+	    && (fabs(expected.altitude  - actual.altitude ) < DOUBLE_ERROR_BOUND);
+}
+
 static bool mat3_similar(const mat3 expected, const mat3 actual)
 {
-	int i;
+	int i, j;
 	for(i = 0; i < 3; ++i)
-		if(!vec3_similar(expected.component[i], actual.component[i]))
-			return false;
+		for(j = 0; j < 3; ++j)
+			if(fabs(expected.component[i][j] - actual.component[i][j]) > DOUBLE_ERROR_BOUND)
+				return false;
 	return true;
 }
 
@@ -33,43 +43,44 @@ static void mat3_show(const mat3 mat)
 int main(void)
 {
 	int fail = 0;
-	const vec3 geodetic_ref = {
-		[LATITUDE] = 0.59341195,
-		[LONGITUDE] = -2.0478571,
-		[ALTITUDE] = 251.702,
+	const geodetic geodetic_ref = {
+		.latitude = 0.59341195,
+		.longitude = -2.0478571,
+		.altitude = 251.702,
 	};
-	const vec3 ecef_ref = {
-		[X] = -2430601.795708,
-		[Y] = -4702442.736094,
-		[Z] =  3546587.336483,
-	};
+	const vec3 ecef_ref = {{
+		.x = -2430601.795708,
+		.y = -4702442.736094,
+		.z =  3546587.336483,
+	}};
 	const mat3 rotation_ref = { .component = {
 		{  0.88834836, -0.45917011,  0.00000000 },
 		{  0.25676467,  0.49675810,  0.82903757 },
 		{ -0.38066927, -0.73647416,  0.55919291 },
 	}};
-	vec3 tmp;
+	vec3 v;
+	geodetic g;
 	mat3 rot;
 
-	ECEF_to_geodetic(tmp, ecef_ref);
-	if(!vec3_similar(geodetic_ref, tmp))
+	g = ECEF_to_geodetic(ecef_ref);
+	if(!geodetic_similar(geodetic_ref, g))
 	{
 		printf("ECEF_to_geodetic returned <lat %f, long %f, alt %f>, expected <lat %f, long %f, alt %f>\n",
-		       tmp[X], tmp[Y], tmp[Z],
-		       geodetic_ref[X], geodetic_ref[Y], geodetic_ref[Z]);
+		       g.latitude, g.longitude, g.altitude,
+		       geodetic_ref.latitude, geodetic_ref.longitude, geodetic_ref.altitude);
 		++fail;
 	}
 
-	geodetic_to_ECEF(tmp, geodetic_ref);
-	if(!vec3_similar(ecef_ref, tmp))
+	v = geodetic_to_ECEF(geodetic_ref);
+	if(!vec3_similar(ecef_ref, v))
 	{
 		printf("geodetic_to_ECEF returned <%f,%f,%f>, expected <%f,%f,%f>\n",
-		       tmp[X], tmp[Y], tmp[Z],
-		       ecef_ref[X], ecef_ref[Y], ecef_ref[Z]);
+		       v.x, v.y, v.z,
+		       ecef_ref.x, ecef_ref.y, ecef_ref.z);
 		++fail;
 	}
 
-	make_origin(tmp, &rot, geodetic_ref);
+	make_origin(&v, &rot, geodetic_ref);
 	if(!mat3_similar(rotation_ref, rot))
 	{
 		printf("make_origin rotation matrix returned was\n");
@@ -78,11 +89,11 @@ int main(void)
 		mat3_show(rotation_ref);
 		++fail;
 	}
-	if(!vec3_similar(ecef_ref, tmp))
+	if(!vec3_similar(ecef_ref, v))
 	{
 		printf("make_origin origin returned was <%f,%f,%f>, expected <%f,%f,%f>\n",
-		       tmp[X], tmp[Y], tmp[Z],
-		       ecef_ref[X], ecef_ref[Y], ecef_ref[Z]);
+		       v.x, v.y, v.z,
+		       ecef_ref.x, ecef_ref.y, ecef_ref.z);
 		++fail;
 	}
 
