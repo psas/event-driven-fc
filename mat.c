@@ -1,6 +1,7 @@
 #include <math.h>
 #include <string.h>
 #include "mat.h"
+#include "vec.h"
 
 /* http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToMatrix/ */
 mat3 axis_angle_to_mat3(vec3 axis_angle)
@@ -8,7 +9,7 @@ mat3 axis_angle_to_mat3(vec3 axis_angle)
 	mat3 dst;
 	double x = axis_angle.x, y = axis_angle.y, z = axis_angle.z;
 
-	double angle = sqrt(x*x + y*y + z*z);
+	double angle = vec_abs(axis_angle);
 	x /= angle;
 	y /= angle;
 	z /= angle;
@@ -55,5 +56,15 @@ vec3 mat3_vec3_mul(mat3 left, vec3 right)
 	for(i = 0; i < 3; ++i)
 		for(k = 0; k < 3; ++k)
 			tmp.component[i] += left.component[i][k] * right.component[k];
+	return tmp;
+}
+
+mat3 mat3_transpose(mat3 m)
+{
+	mat3 tmp;
+	int i, j;
+	for(i = 0; i < 3; ++i)
+		for(j = 0; j < 3; ++j)
+			tmp.component[j][i] = m.component[i][j];
 	return tmp;
 }

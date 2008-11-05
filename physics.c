@@ -61,7 +61,6 @@ static vec3 thrust_force(struct rocket_state *rocket_state)
 
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
-	int i;
 	vec3 force = {{ 0, 0, 0 }};
 
 	if(rocket_state->engine_burning)
@@ -82,13 +81,8 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
-	vec3 rotvel;
-	for(i = 0; i < 3; ++i)
-	{
-		rocket_state->pos.component[i] += rocket_state->vel.component[i] * delta_t;
-		rocket_state->vel.component[i] += rocket_state->acc.component[i] * delta_t;
-		rocket_state->acc.component[i] = force.component[i] / rocket_state->mass;
-		rotvel.component[i] = rocket_state->rotvel.component[i] * delta_t;
-	}
-	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(rotvel));
+	rocket_state->pos = vec_add(rocket_state->pos, vec_scale(rocket_state->vel, delta_t));
+	rocket_state->vel = vec_add(rocket_state->vel, vec_scale(rocket_state->acc, delta_t));
+	rocket_state->acc = vec_scale(force, 1/rocket_state->mass);
+	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
 }

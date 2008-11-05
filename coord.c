@@ -51,24 +51,12 @@ void make_origin(vec3 *origin, mat3 *rotation, geodetic geodetic)
 
 vec3 ECEF_to_tangent_plane(vec3 origin, mat3 rotation, vec3 ecef)
 {
-	int i;
-	vec3 tmp;
-	for(i = 0; i < 3; ++i)
-		tmp.component[i] = ecef.component[i] - origin.component[i];
-	return mat3_vec3_mul(rotation, tmp);
+	return mat3_vec3_mul(rotation, vec_sub(ecef, origin));
 }
 
 vec3 tangent_plane_to_ECEF(vec3 origin, mat3 rotation, vec3 ltp)
 {
-	mat3 tmp;
-	int i, j;
-	for(i = 0; i < 3; ++i)
-		for(j = 0; j < 3; ++j)
-			tmp.component[j][i] = rotation.component[i][j];
-	vec3 ecef = mat3_vec3_mul(tmp, ltp);
-	for(i = 0; i < 3; ++i)
-		ecef.component[i] += origin.component[i];
-	return ecef;
+	return vec_add(mat3_vec3_mul(mat3_transpose(rotation), ltp), origin);
 }
 
 /* from http://www.colorado.edu/geography/gcraft/notes/datum/gif/xyzllh.gif

@@ -16,5 +16,6 @@ typedef union mat3
 mat3 axis_angle_to_mat3(vec3 axis_angle);
 mat3 mat3_mul(mat3 left, mat3 right);
 vec3 mat3_vec3_mul(mat3 left, vec3 right);
+mat3 mat3_transpose(mat3 m);
 
 #endif /* MAT_H */
