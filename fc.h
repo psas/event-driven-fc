@@ -1,8 +1,6 @@
 #ifndef FC_H
 #define FC_H
 
-#include "vec.h"
-
 enum state
 {
 	STATE_PREFLIGHT,      // until both given command to arm, and ready to arm
