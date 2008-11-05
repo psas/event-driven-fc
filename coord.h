@@ -11,8 +11,8 @@ typedef struct geodetic {
 
 vec3 geodetic_to_ECEF(geodetic geodetic);
 void make_origin(vec3 *origin, mat3 *rotation, geodetic geodetic);
-vec3 ECEF_to_tangent_plane(vec3 origin, const mat3 *rotation, vec3 ecef);
-vec3 tangent_plane_to_ECEF(vec3 origin, const mat3 *rotation, vec3 ltp);
+vec3 ECEF_to_tangent_plane(vec3 origin, mat3 rotation, vec3 ecef);
+vec3 tangent_plane_to_ECEF(vec3 origin, mat3 rotation, vec3 ltp);
 geodetic ECEF_to_geodetic(vec3 ecef);
 
 #endif /* COORD_H */

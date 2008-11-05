@@ -90,7 +90,5 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 		rocket_state->acc.component[i] = force.component[i] / rocket_state->mass;
 		rotvel.component[i] = rocket_state->rotvel.component[i] * delta_t;
 	}
-	mat3 rotdelta;
-	axis_angle_to_mat3(&rotdelta, rotvel);
-	mat3_mul(&rocket_state->rotpos, &rocket_state->rotpos, &rotdelta);
+	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(rotvel));
 }

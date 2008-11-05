@@ -49,7 +49,7 @@ void make_origin(vec3 *origin, mat3 *rotation, geodetic geodetic)
 	}};
 }
 
-vec3 ECEF_to_tangent_plane(vec3 origin, const mat3 *rotation, vec3 ecef)
+vec3 ECEF_to_tangent_plane(vec3 origin, mat3 rotation, vec3 ecef)
 {
 	int i;
 	vec3 tmp;
@@ -58,14 +58,14 @@ vec3 ECEF_to_tangent_plane(vec3 origin, const mat3 *rotation, vec3 ecef)
 	return mat3_vec3_mul(rotation, tmp);
 }
 
-vec3 tangent_plane_to_ECEF(vec3 origin, const mat3 *rotation, vec3 ltp)
+vec3 tangent_plane_to_ECEF(vec3 origin, mat3 rotation, vec3 ltp)
 {
 	mat3 tmp;
 	int i, j;
 	for(i = 0; i < 3; ++i)
 		for(j = 0; j < 3; ++j)
-			tmp.component[j][i] = rotation->component[i][j];
-	vec3 ecef = mat3_vec3_mul(&tmp, ltp);
+			tmp.component[j][i] = rotation.component[i][j];
+	vec3 ecef = mat3_vec3_mul(tmp, ltp);
 	for(i = 0; i < 3; ++i)
 		ecef.component[i] += origin.component[i];
 	return ecef;

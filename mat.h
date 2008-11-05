@@ -13,8 +13,8 @@ typedef union mat3
 	double component[3][3];
 } mat3;
 
-void axis_angle_to_mat3(mat3 *dst, vec3 axis_angle);
-void mat3_mul(mat3 *dst, mat3 *left, mat3 *right);
-vec3 mat3_vec3_mul(const mat3 *left, vec3 right);
+mat3 axis_angle_to_mat3(vec3 axis_angle);
+mat3 mat3_mul(mat3 left, mat3 right);
+vec3 mat3_vec3_mul(mat3 left, vec3 right);
 
 #endif /* MAT_H */
