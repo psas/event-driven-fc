@@ -48,12 +48,12 @@ mat3 make_LTP_rotation(geodetic geodetic)
 	}};
 }
 
-vec3 ECEF_to_tangent_plane(vec3 origin, mat3 rotation, vec3 ecef)
+vec3 ECEF_to_LTP(vec3 origin, mat3 rotation, vec3 ecef)
 {
 	return mat3_vec3_mul(rotation, vec_sub(ecef, origin));
 }
 
-vec3 tangent_plane_to_ECEF(vec3 origin, mat3 rotation, vec3 ltp)
+vec3 LTP_to_ECEF(vec3 origin, mat3 rotation, vec3 ltp)
 {
 	return vec_add(mat3_vec3_mul(mat3_transpose(rotation), ltp), origin);
 }
