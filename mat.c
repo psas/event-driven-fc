@@ -10,6 +10,8 @@ mat3 axis_angle_to_mat3(vec3 axis_angle)
 	double x = axis_angle.x, y = axis_angle.y, z = axis_angle.z;
 
 	double angle = vec_abs(axis_angle);
+	if(fabs(angle) < 1e-30)
+		return (mat3) {{ .x1 = 1, .y2 = 1, .z3 = 1 }};
 	x /= angle;
 	y /= angle;
 	z /= angle;
