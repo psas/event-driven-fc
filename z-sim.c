@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "coord.h"
 #include "vec.h"
 #include "fc.h"
 #include "interface.h"
@@ -102,7 +103,7 @@ static void update_simulator(void)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
 				rocket_state.pos.z, rocket_state.vel.z, rocket_state.acc.z);
 	z_accelerometer(rocket_state.acc.z);
-	pressure_sensor(altitude_to_pressure(rocket_state.pos.z));
+	pressure_sensor(altitude_to_pressure(ECEF_to_geodetic(rocket_state.pos).altitude));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
@@ -125,6 +126,12 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 {
 	/* TODO: accept an initial orientation for leaving the tower */
 	rocket_state->mass = ROCKET_EMPTY_MASS + FUEL_MASS;
+	const geodetic initial_geodetic = {
+		.latitude = M_PI_2,
+		.longitude = 0,
+		.altitude = 0,
+	};
+	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
 }
 
 int main(int argc, char *argv[])

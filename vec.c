@@ -18,9 +18,14 @@ vec3 vec_sub(vec3 a, vec3 b)
 	}};
 }
 
+double vec_dot(vec3 a, vec3 b)
+{
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
 double vec_abs(vec3 v)
 {
-	return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+	return sqrt(vec_dot(v, v));
 }
 
 vec3 vec_scale(vec3 v, double scale)

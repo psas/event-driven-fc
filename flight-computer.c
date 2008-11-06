@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
+#include "coord.h"
 #include "fc.h"
 #include "gprob.h"
 #include "interface.h"
@@ -55,10 +56,17 @@ static void change_state(enum state new_state)
 void init(void)
 {
 	struct particle *particle;
+	const geodetic initial_geodetic = {
+		.latitude = M_PI_2,
+		.longitude = 0,
+		.altitude = 0,
+	};
+	vec3 initial = geodetic_to_ECEF(initial_geodetic);
 	for_each_particle(particle)
 	{
 		particle->weight = 1.0;
 		particle->s.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
+		particle->s.pos = initial;
 	}
 }
 
@@ -91,7 +99,7 @@ static void update_state(void)
 		case STATE_PREFLIGHT:
 			/* FIXME: check if pointing in the right direction. */
 			for_each_particle(particle)
-				if(particle->s.pos.z <= 2.0)
+				if(fabs(ECEF_to_geodetic(particle->s.pos).altitude) <= 2.0)
 					count++;
 			can_arm = count > PARTICLE_THRESHOLD;
 			break;
@@ -123,7 +131,7 @@ static void update_state(void)
 		case STATE_DROGUE_DESCENT:
 			drogue_chute(false);
 			for_each_particle(particle)
-				if(particle->s.pos.z <= 500.0)
+				if(ECEF_to_geodetic(particle->s.pos).altitude <= 500.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 			{
@@ -134,7 +142,7 @@ static void update_state(void)
 		case STATE_MAIN_DESCENT:
 			main_chute(false);
 			for_each_particle(particle)
-				if(particle->s.pos.z <= 2.0
+				if(ECEF_to_geodetic(particle->s.pos).altitude <= 2.0
 				   && fabs(particle->s.vel.z) <= 0.01)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
@@ -159,8 +167,10 @@ void tick(double delta_t)
 
 	update_state();
 
-	printf("BPF: total weight: %.2f likely Z pos, vel, acc: %.2f %.2f %.2f (%s %s %s)\n",
+	geodetic geodetic = ECEF_to_geodetic(particles[max_belief].s.pos);
+	printf("BPF: total weight: %.2f likely Z pos, vel, acc: %.2f %.2f %.2f, geodetic position: lat %.2f long %.2f alt %.2f (%s %s %s)\n",
 	       total_weight, particles[max_belief].s.pos.z, particles[max_belief].s.vel.z, particles[max_belief].s.acc.z,
+	       geodetic.latitude, geodetic.longitude, geodetic.altitude,
 	       particles[max_belief].s.engine_burning ? "BURN" : "", particles[max_belief].s.drogue_chute_deployed ? "DROGUE" : "", particles[max_belief].s.main_chute_deployed ? "MAIN" : "");
 	which_particles = !which_particles;
 	particles = particle_arrays[which_particles];
@@ -208,6 +218,6 @@ void pressure_sensor(double pressure)
 	double altitude = pressure_to_altitude(pressure);
 	for_each_particle(particle)
 	{
-		particle->weight *= gprob(particle->s.pos.z - altitude, pressure_sd);
+		particle->weight *= gprob(ECEF_to_geodetic(particle->s.pos).altitude - altitude, pressure_sd);
 	}
 }
