@@ -221,9 +221,9 @@ void accelerometer_sensor(vec3 acc)
 void pressure_sensor(double pressure)
 {
 	struct particle *particle;
-	double altitude = pressure_to_altitude(pressure);
 	for_each_particle(particle)
 	{
-		particle->weight *= gprob(ECEF_to_geodetic(particle->s.pos).altitude - altitude, pressure_sd);
+		double local = altitude_to_pressure(ECEF_to_geodetic(particle->s.pos).altitude);
+		particle->weight *= gprob(pressure - local, pressure_sd);
 	}
 }
