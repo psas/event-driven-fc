@@ -210,7 +210,8 @@ void accelerometer_sensor(vec3 acc)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		vec3 local = mat3_vec3_mul(particle->s.rotpos, particle->s.acc);
+		vec3 ecef = vec_sub(particle->s.acc, vec_scale(gravity_force(&particle->s), 1/particle->s.mass));
+		vec3 local = mat3_vec3_mul(particle->s.rotpos, ecef);
 		int i;
 		for(i = 0; i < 3; ++i)
 			particle->weight *= gprob(acc.component[i] - local.component[i], accelerometer_sd.component[i]);

@@ -28,6 +28,7 @@ struct rocket_state
 	bool main_chute_deployed;
 };
 
+vec3 gravity_force(struct rocket_state *rocket_state);
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t);
 
 #endif
