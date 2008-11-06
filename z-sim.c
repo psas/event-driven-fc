@@ -104,7 +104,8 @@ static void update_simulator(void)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
 				rocket_state.pos.z, rocket_state.vel.z, rocket_state.acc.z);
 	accelerometer_sensor(accelerometer_measurement(&rocket_state));
-	pressure_sensor(pressure_measurement(&rocket_state));
+	if(t % (DELTA_T * 100) == 0)
+		pressure_sensor(pressure_measurement(&rocket_state));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
