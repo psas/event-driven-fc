@@ -132,6 +132,7 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 		.altitude = 0,
 	};
 	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
+	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
 }
 
 int main(int argc, char *argv[])

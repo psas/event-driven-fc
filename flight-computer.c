@@ -62,11 +62,13 @@ void init(void)
 		.altitude = 0,
 	};
 	vec3 initial = geodetic_to_ECEF(initial_geodetic);
+	mat3 initial_rotation = make_LTP_rotation(initial_geodetic);
 	for_each_particle(particle)
 	{
 		particle->weight = 1.0;
 		particle->s.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 		particle->s.pos = initial;
+		particle->s.rotpos = initial_rotation;
 	}
 }
 
