@@ -21,8 +21,8 @@
  * meters/second, meters/second^2, radians.
  */
 
-static const vec3 accelerometer_sd = {{ 0.01, 0.01, 0.01 }};
-static const double pressure_sd = 10;
+static const vec3 accelerometer_sd = {{ 0.001, 0.001, 0.001 }};
+static const double pressure_sd = 1;
 
 static const double prob_engine_trans = 0.01;
 static const double prob_drogue_trans = 0.01;
