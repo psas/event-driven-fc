@@ -68,6 +68,13 @@ geodetic ECEF_to_geodetic(vec3 ecef)
 		(WGS84_B * WGS84_B);
 
 	double p = sqrt(ecef.x * ecef.x + ecef.y * ecef.y);
+	/* Handle discontinuity at the North and South poles. */
+	if(fabs(p) < 1e-30)
+		return (geodetic) {
+			.latitude = copysign(M_PI_2, ecef.z),
+			.longitude = 0,
+			.altitude = fabs(ecef.z) - WGS84_B,
+		};
 	double theta = atan((ecef.z * WGS84_A) / (p * WGS84_B));
 
 	double st = sin(theta);
@@ -77,6 +84,10 @@ geodetic ECEF_to_geodetic(vec3 ecef)
 		(ecef.z + EDOTSQ * WGS84_B * st * st * st) /
 		(p   - WGS84_ESQ * WGS84_A * ct * ct * ct));
 	geodetic.longitude = atan2(ecef.y, ecef.x);
-	geodetic.altitude = p / cos(geodetic.latitude) - N(geodetic.latitude);
+	double sinlat = sin(geodetic.latitude);
+	double Nlat = N(geodetic.latitude);
+	/* Altitude computation from the MathWorks documentation for the
+	 * Aerospace Blockset: "ECEF Position to LLA" */
+	geodetic.altitude = p * cos(geodetic.latitude) + (ecef.z + WGS84_ESQ * Nlat * sinlat) * sinlat - Nlat;
 	return geodetic;
 }
