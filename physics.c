@@ -22,7 +22,7 @@ static double sign(double x)
 vec3 gravity_force(struct rocket_state *rocket_state)
 {
 	/* TODO: apply gravity at the approximate center of mass */
-	return (vec3){{ 0, 0, -rocket_state->mass * EARTH_GRAVITY }};
+	return vec_scale(rocket_state->pos, -EARTH_GRAVITY * rocket_state->mass / vec_abs(rocket_state->pos));
 }
 
 static vec3 drag_force(struct rocket_state *rocket_state)
