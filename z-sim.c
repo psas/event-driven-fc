@@ -102,7 +102,7 @@ static void update_simulator(void)
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
 				rocket_state.pos.z, rocket_state.vel.z, rocket_state.acc.z);
-	z_accelerometer(rocket_state.acc.z);
+	accelerometer_sensor(mat3_vec3_mul(rocket_state.rotpos, rocket_state.acc));
 	pressure_sensor(altitude_to_pressure(ECEF_to_geodetic(rocket_state.pos).altitude));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{

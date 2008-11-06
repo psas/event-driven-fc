@@ -1,6 +1,8 @@
 #ifndef FC_H
 #define FC_H
 
+#include "vec.h"
+
 enum state
 {
 	STATE_PREFLIGHT,      // until both given command to arm, and ready to arm
@@ -16,7 +18,7 @@ void init(void);
 void tick(double delta_t);
 void arm(void);
 void launch(void);
-void z_accelerometer(double z_acc);
+void accelerometer_sensor(vec3 acc);
 void pressure_sensor(double pressure);
 
 #endif /* FC_H */

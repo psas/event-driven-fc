@@ -20,7 +20,7 @@
  * meters/second, meters/second^2, radians.
  */
 
-static const double z_accelerometer_sd = 0.01;
+static const vec3 accelerometer_sd = {{ 0.01, 0.01, 0.01 }};
 static const double pressure_sd = 10;
 
 static const double prob_engine_trans = 0.01;
@@ -205,12 +205,15 @@ void launch(void)
 		enqueue_error("Cannot launch: not armed.");
 }
 
-void z_accelerometer(double z_accelerometer)
+void accelerometer_sensor(vec3 acc)
 {
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		particle->weight *= gprob(particle->s.acc.z - z_accelerometer, z_accelerometer_sd);
+		vec3 local = mat3_vec3_mul(mat3_transpose(particle->s.rotpos), acc);
+		int i;
+		for(i = 0; i < 3; ++i)
+			particle->weight *= gprob(particle->s.acc.component[i] - local.component[i], accelerometer_sd.component[i]);
 	}
 }
 
