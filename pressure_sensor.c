@@ -41,8 +41,6 @@ double altitude_to_pressure(double altitude) {
    int layer_number; /* identifies layer in the atmosphere */
    int delta_z; /* difference between two altitudes */
    
-   if (altitude < 0) /* illegal altitude */
-      return -1;
    if (altitude > MAXIMUM_ALTITUDE) /* FIX ME: use sensor data to improve model */
       return 0;
 
@@ -99,7 +97,7 @@ double pressure_to_altitude(double pressure) {
    int layer_number; /* identifies layer in the atmosphere */
    int delta_z; /* difference between two altitudes */
 
-   if (pressure < 0 || pressure > LAYER0_BASE_PRESSURE)  /* illegal pressure */
+   if (pressure < 0)  /* illegal pressure */
       return -1;
    if (pressure < MINIMUM_PRESSURE) /* FIX ME: use sensor data to improve model */
       return MAXIMUM_ALTITUDE;
