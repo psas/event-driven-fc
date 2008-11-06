@@ -43,6 +43,7 @@ static void mat3_show(const mat3 mat)
 int main(void)
 {
 	int fail = 0;
+	const double WGS84_B = 6356752.3142;
 	const geodetic geodetic_ref = {
 		.latitude = 0.59341195,
 		.longitude = -2.0478571,
@@ -61,6 +62,7 @@ int main(void)
 	vec3 v;
 	geodetic g;
 	mat3 rot;
+	int i;
 
 	g = ECEF_to_geodetic(ecef_ref);
 	if(!geodetic_similar(geodetic_ref, g))
@@ -88,6 +90,24 @@ int main(void)
 		printf("but expected\n");
 		mat3_show(rotation_ref);
 		++fail;
+	}
+
+	for(i = -10; i <= 10; i += 10)
+	{
+		v = (vec3) {{ 1, 0, WGS84_B + i }};
+		for(v.x = 1; v.x > 0; v.x /= 10)
+		{
+			g = ECEF_to_geodetic(v);
+			if(fabs(g.altitude - i) > 0.01)
+			{
+				printf("ECEF_to_geodetic at x=%g returned lat "
+				       "%f long %f alt %f but expected "
+				       "altitude approximately %d\n", v.x,
+				       g.latitude, g.longitude, g.altitude, i);
+				++fail;
+				break;
+			}
+		}
 	}
 
 	exit(fail);
