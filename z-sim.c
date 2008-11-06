@@ -9,6 +9,7 @@
 #include "interface.h"
 #include "physics.h"
 #include "pressure_sensor.h"
+#include "sensors.h"
 
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
@@ -102,10 +103,8 @@ static void update_simulator(void)
 	if(trace_physics)
 		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
 				rocket_state.pos.z, rocket_state.vel.z, rocket_state.acc.z);
-
-	vec3 accel = vec_sub(rocket_state.acc, vec_scale(gravity_force(&rocket_state), 1/rocket_state.mass));
-	accelerometer_sensor(mat3_vec3_mul(rocket_state.rotpos, accel));
-	pressure_sensor(altitude_to_pressure(ECEF_to_geodetic(rocket_state.pos).altitude));
+	accelerometer_sensor(accelerometer_measurement(&rocket_state));
+	pressure_sensor(pressure_measurement(&rocket_state));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");

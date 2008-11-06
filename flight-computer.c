@@ -9,6 +9,7 @@
 #include "physics.h"
 #include "pressure_sensor.h"
 #include "resample.h"
+#include "sensors.h"
 #include "ziggurat/random.h"
 
 /* Position and rotation use local tangent plane (LTP); when on the launch
@@ -210,8 +211,7 @@ void accelerometer_sensor(vec3 acc)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		vec3 ecef = vec_sub(particle->s.acc, vec_scale(gravity_force(&particle->s), 1/particle->s.mass));
-		vec3 local = mat3_vec3_mul(particle->s.rotpos, ecef);
+		vec3 local = accelerometer_measurement(&particle->s);
 		int i;
 		for(i = 0; i < 3; ++i)
 			particle->weight *= gprob(acc.component[i] - local.component[i], accelerometer_sd.component[i]);
@@ -223,7 +223,7 @@ void pressure_sensor(double pressure)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		double local = altitude_to_pressure(ECEF_to_geodetic(particle->s.pos).altitude);
+		double local = pressure_measurement(&particle->s);
 		particle->weight *= gprob(pressure - local, pressure_sd);
 	}
 }
