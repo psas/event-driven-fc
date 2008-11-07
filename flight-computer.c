@@ -108,7 +108,7 @@ static void update_state(void)
 			break;
 		case STATE_ARMED:
 			for_each_particle(particle)
-				if(particle->s.acc.z >= 1.0)
+				if(mat3_vec3_mul(particle->s.rotpos, particle->s.acc).z >= 1.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_BOOST);
@@ -116,14 +116,14 @@ static void update_state(void)
 		case STATE_BOOST:
 			ignite(false);
 			for_each_particle(particle)
-				if(particle->s.acc.z <= 0.0)
+				if(mat3_vec3_mul(particle->s.rotpos, particle->s.acc).z <= 0.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_COAST);
 			break;
 		case STATE_COAST:
 			for_each_particle(particle)
-				if(fabs(particle->s.vel.z) <= 5.0)
+				if(vec_abs(particle->s.vel) <= 5.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 			{
@@ -146,7 +146,7 @@ static void update_state(void)
 			main_chute(false);
 			for_each_particle(particle)
 				if(ECEF_to_geodetic(particle->s.pos).altitude <= 2.0
-				   && fabs(particle->s.vel.z) <= 0.01)
+				   && vec_abs(particle->s.vel) <= 0.01)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_RECOVERY);
