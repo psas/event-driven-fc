@@ -10,15 +10,6 @@ static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
 static const double ROCKET_CROSS_SECTION = 0.015327901242699;
 static const double AIR_DENSITY = 1.225;
 
-static double sign(double x)
-{
-	if(x < 0)
-		return -1;
-	if(x > 0)
-		return 1;
-	return 0;
-}
-
 vec3 gravity_force(struct rocket_state *rocket_state)
 {
 	/* TODO: apply gravity at the approximate center of mass */
@@ -43,21 +34,16 @@ static vec3 drag_force(struct rocket_state *rocket_state)
 		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
 		cross_section = ROCKET_CROSS_SECTION;
 	}
-	return (vec3){{
-		.x = 0,
-		.y = 0,
-		.z = -sign(rocket_state->vel.z) * 0.5 * AIR_DENSITY
-		   * rocket_state->vel.z * rocket_state->vel.z
-		   * cross_section * drag_coefficient
-	}};
+	return vec_scale(rocket_state->vel, -0.5 * AIR_DENSITY
+	                 * vec_abs(rocket_state->vel)
+	                 * cross_section * drag_coefficient);
 }
 
 static vec3 thrust_force(struct rocket_state *rocket_state)
 {
-	if(rocket_state->engine_burning)
-	        return (vec3){{ 0, 0, ENGINE_THRUST }};
-	else
+	if(!rocket_state->engine_burning)
 	        return (vec3){{ 0, 0, 0 }};
+	return mat3_vec3_mul(mat3_transpose(rocket_state->rotpos), (vec3){{ 0, 0, ENGINE_THRUST }});
 }
 
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
