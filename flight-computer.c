@@ -171,10 +171,10 @@ void tick(double delta_t)
 	update_state();
 
 	geodetic geodetic = ECEF_to_geodetic(particles[max_belief].s.pos);
-	printf("BPF: total weight: %.2f likely Z pos, vel, acc: %.2f %.2f %.2f, geodetic position: lat %.2f long %.2f alt %.2f (%s %s %s)\n",
-	       total_weight, particles[max_belief].s.pos.z, particles[max_belief].s.vel.z, particles[max_belief].s.acc.z,
-	       geodetic.latitude, geodetic.longitude, geodetic.altitude,
-	       particles[max_belief].s.engine_burning ? "BURN" : "", particles[max_belief].s.drogue_chute_deployed ? "DROGUE" : "", particles[max_belief].s.main_chute_deployed ? "MAIN" : "");
+	printf("BPF likely rocket altitude, vel, acc: %8.2f %8.2f %8.2f (%s %s %s), total weight: %.2f\n",
+	       geodetic.altitude, vec_abs(particles[max_belief].s.vel), vec_abs(particles[max_belief].s.acc),
+	       particles[max_belief].s.engine_burning ? "BURN" : "", particles[max_belief].s.drogue_chute_deployed ? "DROGUE" : "", particles[max_belief].s.main_chute_deployed ? "MAIN" : "",
+	       total_weight);
 	which_particles = !which_particles;
 	particles = particle_arrays[which_particles];
 

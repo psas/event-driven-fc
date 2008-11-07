@@ -32,7 +32,7 @@ static void trace_printf(char *fmt, ...)
 	if(trace)
 	{
 		va_start(args, fmt);
-		printf("%0.3f: ", t / 1e6);
+		printf("%9.3f: ", t / 1e6);
 		vprintf(fmt, args);
 		va_end(args);
 	}
@@ -101,8 +101,10 @@ void enqueue_error(char *msg)
 static void update_simulator(void)
 {
 	if(trace_physics)
-		trace_printf("Rocket Z pos, vel, acc: %f %f %f\n",
-				rocket_state.pos.z, rocket_state.vel.z, rocket_state.acc.z);
+		trace_printf("Rocket altitude, vel, acc: %8.2f %8.2f %8.2f\n",
+		             ECEF_to_geodetic(rocket_state.pos).altitude,
+		             vec_abs(rocket_state.vel),
+		             vec_abs(rocket_state.acc));
 	accelerometer_sensor(accelerometer_measurement(&rocket_state));
 	if(t % (DELTA_T * 100) == 0)
 		pressure_sensor(pressure_measurement(&rocket_state));
