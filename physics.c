@@ -18,6 +18,7 @@ vec3 gravity_force(struct rocket_state *rocket_state)
 
 static vec3 drag_force(struct rocket_state *rocket_state)
 {
+	/* TODO: fix drag for rocket orientation */
 	double drag_coefficient, cross_section;
         if(rocket_state->main_chute_deployed)
 	{
