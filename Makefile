@@ -7,12 +7,15 @@ HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h sensors.h resa
 #  Invoke with "make [targets] CFLAGS=" on the Mac.
 CFLAGS = -fwhole-program -combine
 
+OPTS = -O3 -ffast-math
+WARNINGS = -Werror -Wall -Wextra -Wmissing-prototypes
+
 TARGETS = z-sim coordtest
 
 all: $(TARGETS)
 
 z-sim: $(SOURCES) $(HEADERS)
-	$(CC) -Wall -Werror -O3 -ffast-math $(CFLAGS) $(SOURCES) -lm -o $@
+	$(CC) $(WARNINGS) $(OPTS) $(CFLAGS) $(SOURCES) -lm -o $@
 
 ziggurat/normal_tab.c:
 	make -C ziggurat normal_tab.c
@@ -24,7 +27,7 @@ COORDTEST_SOURCES = coord.c coordtest.c mat.c vec.c
 COORDTEST_HEADERS = vec.h mat.h coord.h compiler.h
 
 coordtest: $(COORDTEST_SOURCES) $(COORDTEST_HEADERS)
-	$(CC) -Wall -Werror -O3 -ffast-math $(CFLAGS) $(COORDTEST_SOURCES) -lm -o $@
+	$(CC) $(WARNINGS) $(OPTS) $(CFLAGS) $(COORDTEST_SOURCES) -lm -o $@
 
 test: coordtest
 	./coordtest

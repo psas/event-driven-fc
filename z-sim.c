@@ -14,7 +14,6 @@
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
-static const microseconds ARM_TIME = 0;
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
 
 static bool trace, trace_physics;
@@ -119,7 +118,7 @@ static void update_simulator(void)
 		trace_printf("Engine burn-out.\n");
 		rocket_state.engine_burning = false;
 	}
-	if(fc_state == STATE_PREFLIGHT && t >= ARM_TIME)
+	if(fc_state == STATE_PREFLIGHT)
 	{
 		trace_printf("Sending arm signal\n");
 		arm();
