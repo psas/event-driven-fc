@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "coord.h"
-#include "fc.h"
 #include "gprob.h"
 #include "interface.h"
 #include "particle.h"

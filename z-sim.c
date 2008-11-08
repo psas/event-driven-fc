@@ -5,7 +5,6 @@
 #include <string.h>
 #include "coord.h"
 #include "vec.h"
-#include "fc.h"
 #include "interface.h"
 #include "physics.h"
 #include "pressure_sensor.h"
