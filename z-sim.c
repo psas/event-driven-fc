@@ -97,6 +97,16 @@ void enqueue_error(const char *msg)
 	trace_printf("Error message from rocket: %s\n", msg);
 }
 
+static unsigned quantize(double value, unsigned mask)
+{
+	long int rounded = lround(value);
+	if(rounded < 0)
+		return 0;
+	if(rounded > mask)
+		return mask;
+	return rounded;
+}
+
 static void update_simulator(void)
 {
 	if(trace_physics)
@@ -106,7 +116,7 @@ static void update_simulator(void)
 		             vec_abs(rocket_state.acc));
 	accelerometer_sensor(accelerometer_measurement(&rocket_state));
 	if(t % (DELTA_T * 100) == 0)
-		pressure_sensor(pressure_measurement(&rocket_state));
+		pressure_sensor(quantize(pressure_measurement(&rocket_state), 0xfff));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");

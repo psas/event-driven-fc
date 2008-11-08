@@ -206,6 +206,18 @@ void launch(void)
 		enqueue_error("Cannot launch: not armed.");
 }
 
+static double quantized_gprob(unsigned measured, double expected, double standard_dev, unsigned mask)
+{
+	double width = standard_dev * M_SQRT2;
+	double hi = erf((measured + 0.5 - expected) / width);
+	double lo = erf((measured - 0.5 - expected) / width);
+	if(measured == 0)
+		return 1 + hi;
+	if(measured == mask)
+		return 1 - lo;
+	return hi - lo;
+}
+
 void accelerometer_sensor(vec3 acc)
 {
 	struct particle *particle;
@@ -218,12 +230,12 @@ void accelerometer_sensor(vec3 acc)
 	}
 }
 
-void pressure_sensor(double pressure)
+void pressure_sensor(unsigned pressure)
 {
 	struct particle *particle;
 	for_each_particle(particle)
 	{
 		double local = pressure_measurement(&particle->s);
-		particle->weight *= gprob(pressure - local, pressure_sd);
+		particle->weight *= quantized_gprob(pressure, local, pressure_sd, 0xfff);
 	}
 }

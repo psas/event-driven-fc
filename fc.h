@@ -19,6 +19,6 @@ void tick(double delta_t);
 void arm(void);
 void launch(void);
 void accelerometer_sensor(vec3 acc);
-void pressure_sensor(double pressure);
+void pressure_sensor(unsigned pressure);
 
 #endif /* FC_H */
