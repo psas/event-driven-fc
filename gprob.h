@@ -11,9 +11,9 @@
 
 #include <math.h>
 
-static inline double gprob(double delta, double sd)
+static inline double gprob(double delta, double variance)
 {
-    return exp(-delta * delta * sd);
+    return exp(-delta * delta / (2 * variance));
 }
 
 #endif /* GPROB_H */
