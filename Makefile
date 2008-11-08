@@ -4,18 +4,18 @@ ZIGGURAT_HEADERS = ziggurat/random.h
 HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h sensors.h resample.h coord.h mat.h vec.h gprob.h compiler.h $(ZIGGURAT_HEADERS)
 
 # These flags are not supported by the OS X version of gcc (4.0.1).
-#  Invoke with "make [targets] CFLAGS=" on the Mac.
-CFLAGS = -fwhole-program -combine
-
-OPTS = -O3 -ffast-math
+#  Invoke with "make [targets] COMBINEFLAGS=" on the Mac.
+COMBINEFLAGS = -fwhole-program -combine
+OPTS = -O3 -ffast-math $(COMBINEFLAGS)
 WARNINGS = -Werror -Wall -Wextra -Wmissing-prototypes
+CFLAGS = $(OPTS) $(WARNINGS)
 
 TARGETS = z-sim coordtest
 
 all: $(TARGETS)
 
 z-sim: $(SOURCES) $(HEADERS)
-	$(CC) $(WARNINGS) $(OPTS) $(CFLAGS) $(SOURCES) -lm -o $@
+	$(CC) $(CFLAGS) $(SOURCES) -lm -o $@
 
 ziggurat/normal_tab.c:
 	make -C ziggurat normal_tab.c
@@ -27,7 +27,7 @@ COORDTEST_SOURCES = coord.c coordtest.c mat.c vec.c
 COORDTEST_HEADERS = vec.h mat.h coord.h compiler.h
 
 coordtest: $(COORDTEST_SOURCES) $(COORDTEST_HEADERS)
-	$(CC) $(WARNINGS) $(OPTS) $(CFLAGS) $(COORDTEST_SOURCES) -lm -o $@
+	$(CC) $(CFLAGS) $(COORDTEST_SOURCES) -lm -o $@
 
 test: coordtest
 	./coordtest
