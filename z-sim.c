@@ -25,7 +25,7 @@ static microseconds engine_ignition_time;
 /* State of the simulated rocket. */
 static struct rocket_state rocket_state;
 
-static ATTR_FORMAT(printf,1,2) void trace_printf(char *fmt, ...)
+static ATTR_FORMAT(printf,1,2) void trace_printf(const char *fmt, ...)
 {
 	va_list args;
 	if(trace)
@@ -92,7 +92,7 @@ void main_chute(bool go)
 	}
 }
 
-void enqueue_error(char *msg)
+void enqueue_error(const char *msg)
 {
 	trace_printf("Error message from rocket: %s\n", msg);
 }

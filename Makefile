@@ -7,7 +7,7 @@ HEADERS = fc.h interface.h particle.h physics.h pressure_sensor.h sensors.h resa
 #  Invoke with "make [targets] COMBINEFLAGS=" on the Mac.
 COMBINEFLAGS = -fwhole-program -combine
 OPTS = -O3 -ffast-math $(COMBINEFLAGS)
-WARNINGS = -Werror -Wall -Wextra -Wmissing-prototypes
+WARNINGS = -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
 CFLAGS = $(OPTS) $(WARNINGS)
 
 TARGETS = z-sim coordtest
