@@ -28,6 +28,8 @@ struct rocket_state
 	bool main_chute_deployed;
 };
 
+vec3 ECEF_to_rocket(struct rocket_state *rocket_state, vec3 v);
+vec3 rocket_to_ECEF(struct rocket_state *rocket_state, vec3 v);
 vec3 gravity_force(struct rocket_state *rocket_state);
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t);
 

@@ -108,7 +108,7 @@ static void update_state(void)
 			break;
 		case STATE_ARMED:
 			for_each_particle(particle)
-				if(mat3_vec3_mul(particle->s.rotpos, particle->s.acc).z >= 1.0)
+				if(ECEF_to_rocket(&particle->s, particle->s.acc).z >= 1.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_BOOST);
@@ -116,7 +116,7 @@ static void update_state(void)
 		case STATE_BOOST:
 			ignite(false);
 			for_each_particle(particle)
-				if(mat3_vec3_mul(particle->s.rotpos, particle->s.acc).z <= 0.0)
+				if(ECEF_to_rocket(&particle->s, particle->s.acc).z <= 0.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 				change_state(STATE_COAST);

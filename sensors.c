@@ -15,7 +15,7 @@ vec3 accelerometer_measurement(struct rocket_state *state)
 	const vec3 gain = {{  392.80/G,  386.90/G,   77.00/G }};
 	vec3 gravity_acc = vec_scale(gravity_force(state), 1/state->mass);
 	vec3 ecef = vec_sub(state->acc, gravity_acc);
-	vec3 rocket = mat3_vec3_mul(state->rotpos, ecef);
+	vec3 rocket = ECEF_to_rocket(state, ecef);
 	/* TODO: return a four-vector with "Q" accelerometer */
 	return (vec3) {{
 		.x = rocket.x * gain.x + bias.x,
