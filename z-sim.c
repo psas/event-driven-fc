@@ -25,7 +25,7 @@ static microseconds engine_ignition_time;
 /* State of the simulated rocket. */
 static struct rocket_state rocket_state;
 
-static void trace_printf(char *fmt, ...)
+static ATTR_FORMAT(printf,1,2) void trace_printf(char *fmt, ...)
 {
 	va_list args;
 	if(trace)
