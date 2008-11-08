@@ -1,9 +1,10 @@
-# These flags are not supported by the OS X version of gcc (4.0.1).
-#  Invoke with "make [targets] COMBINEFLAGS=" on the Mac.
-COMBINEFLAGS = -fwhole-program -combine
-OPTS = -O3 -ffast-math $(COMBINEFLAGS)
-WARNINGS = -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
-CFLAGS = -MD $(OPTS) $(WARNINGS)
+# Compiler flag detection based on similar logic in Kbuild
+try-run = $(shell if ($(1)) >/dev/null 2>&1; then echo '$(2)'; else echo '$(3)'; fi)
+cc-option = $(call try-run,$(CC) $(1) -S -xc /dev/null -o /dev/null,$(1),$(2))
+
+OPTS := -O3 -ffast-math $(call cc-option,-fwhole-program -combine)
+WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
+CFLAGS := -MD $(OPTS) $(WARNINGS)
 
 TARGETS = z-sim coordtest
 
