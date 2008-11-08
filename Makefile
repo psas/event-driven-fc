@@ -4,7 +4,7 @@ cc-option = $(call try-run,$(CC) $(1) -S -xc /dev/null -o /dev/null,$(1),$(2))
 
 OPTS := -O3 -ffast-math $(call cc-option,-fwhole-program -combine)
 WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
-CFLAGS := -MD $(OPTS) $(WARNINGS)
+CFLAGS := -MD -std=gnu99 $(OPTS) $(WARNINGS)
 
 TARGETS = z-sim coordtest
 
