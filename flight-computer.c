@@ -20,7 +20,7 @@
  * meters/second, meters/second^2, radians.
  */
 
-static const vec3 accelerometer_sd = {{ 1, 1, 1 }};
+static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
 static const double pressure_sd = 1;
 
 static const double prob_engine_trans = 0.01;
@@ -217,15 +217,17 @@ static double quantized_gprob(unsigned measured, double expected, double standar
 	return hi - lo;
 }
 
-void accelerometer_sensor(vec3 acc)
+void accelerometer_sensor(accelerometer_i acc)
 {
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		vec3 local = accelerometer_measurement(&particle->s);
-		int i;
-		for(i = 0; i < 3; ++i)
-			particle->weight *= gprob(acc.component[i] - local.component[i], accelerometer_sd.component[i]);
+		accelerometer_d local = accelerometer_measurement(&particle->s);
+		particle->weight *=
+			quantized_gprob(acc.x, local.x, accelerometer_sd.x, 0xfff) *
+			quantized_gprob(acc.y, local.y, accelerometer_sd.y, 0xfff) *
+			quantized_gprob(acc.z, local.z, accelerometer_sd.z, 0xfff) *
+			quantized_gprob(acc.q, local.q, accelerometer_sd.q, 0xfff);
 	}
 }
 

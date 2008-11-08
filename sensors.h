@@ -3,9 +3,12 @@
 
 #include "compiler.h"
 #include "physics.h"
-#include "vec.h"
 
-vec3 accelerometer_measurement(struct rocket_state *state) ATTR_WARN_UNUSED_RESULT;
+typedef struct accelerometer_d {
+	double x, y, z, q;
+} accelerometer_d;
+
+accelerometer_d accelerometer_measurement(struct rocket_state *state) ATTR_WARN_UNUSED_RESULT;
 double pressure_measurement(struct rocket_state *state) ATTR_WARN_UNUSED_RESULT;
 
 #endif /* SENSORS_H */

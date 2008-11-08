@@ -106,6 +106,16 @@ static unsigned quantize(double value, unsigned mask)
 	return rounded;
 }
 
+static accelerometer_i quantize_accelerometer(accelerometer_d value, unsigned mask)
+{
+	return (accelerometer_i) {
+		.x = quantize(value.x, mask),
+		.y = quantize(value.y, mask),
+		.z = quantize(value.z, mask),
+		.q = quantize(value.q, mask),
+	};
+}
+
 static void update_simulator(void)
 {
 	if(trace_physics)
@@ -113,7 +123,7 @@ static void update_simulator(void)
 		             ECEF_to_geodetic(rocket_state.pos).altitude,
 		             vec_abs(rocket_state.vel),
 		             vec_abs(rocket_state.acc));
-	accelerometer_sensor(accelerometer_measurement(&rocket_state));
+	accelerometer_sensor(quantize_accelerometer(accelerometer_measurement(&rocket_state), 0xfff));
 	if(t % (DELTA_T * 100) == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state), 0xfff));
 	if(!engine_ignited && t >= LAUNCH_TIME)

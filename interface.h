@@ -2,8 +2,7 @@
 #define INTERFACE_H
 
 #include <stdbool.h>
-
-#include "vec.h"
+#include <stdint.h>
 
 enum state
 {
@@ -16,12 +15,16 @@ enum state
 	STATE_RECOVERY        // forever
 };
 
+typedef struct accelerometer_i {
+	uint16_t x, y, z, q;
+} accelerometer_i;
+
 /* Implemented by the flight computer */
 void init(void);
 void tick(double delta_t);
 void arm(void);
 void launch(void);
-void accelerometer_sensor(vec3 acc);
+void accelerometer_sensor(accelerometer_i acc);
 void pressure_sensor(unsigned pressure);
 
 /* Implemented by the driver harness */
