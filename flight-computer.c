@@ -122,7 +122,7 @@ static void update_state(void)
 			break;
 		case STATE_COAST:
 			for_each_particle(particle)
-				if(vec_abs(particle->s.vel) <= 5.0)
+				if(vec_dot(particle->s.pos, particle->s.vel) < 0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 			{
