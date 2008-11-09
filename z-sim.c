@@ -36,6 +36,24 @@ static ATTR_FORMAT(printf,1,2) void trace_printf(const char *fmt, ...)
 	}
 }
 
+void trace_state(const char *source, struct rocket_state *state, const char *fmt, ...)
+{
+	va_list args;
+	if(trace_physics)
+	{
+		va_start(args, fmt);
+		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc, %c%c%c",
+		       t / 1e6, source,
+		       ECEF_to_geodetic(state->pos).altitude,
+		       vec_abs(state->vel), vec_abs(state->acc),
+		       state->engine_burning        ? 'B' : '-',
+		       state->drogue_chute_deployed ? 'D' : '-',
+		       state->main_chute_deployed   ? 'M' : '-');
+		vprintf(fmt, args);
+		va_end(args);
+	}
+}
+
 void report_state(enum state state)
 {
 	if(fc_state != state)
@@ -118,11 +136,7 @@ static accelerometer_i quantize_accelerometer(accelerometer_d value, unsigned ma
 
 static void update_simulator(void)
 {
-	if(trace_physics)
-		trace_printf("Rocket altitude, vel, acc: %8.2f %8.2f %8.2f\n",
-		             ECEF_to_geodetic(rocket_state.pos).altitude,
-		             vec_abs(rocket_state.vel),
-		             vec_abs(rocket_state.acc));
+	trace_state("sim", &rocket_state, "\n");
 	accelerometer_sensor(quantize_accelerometer(accelerometer_measurement(&rocket_state), 0xfff));
 	if(t % (DELTA_T * 100) == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state), 0xfff));

@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "physics.h"
+
 enum state
 {
 	STATE_PREFLIGHT,      // until both given command to arm, and ready to arm
@@ -28,6 +30,7 @@ void accelerometer_sensor(accelerometer_i acc);
 void pressure_sensor(unsigned pressure);
 
 /* Implemented by the driver harness */
+void trace_state(const char *source, struct rocket_state *state, const char *fmt, ...) ATTR_FORMAT(printf,3,4);
 void report_state(enum state state);
 void ignite(bool go);
 void drogue_chute(bool go);
