@@ -14,8 +14,13 @@ static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
+static const geodetic initial_geodetic = {
+	.latitude = M_PI_2,
+	.longitude = 0,
+	.altitude = 0,
+};
 
-static bool trace, trace_physics;
+static bool trace, trace_physics, trace_ltp;
 static microseconds t;
 static enum state fc_state;
 static bool engine_ignited;
@@ -51,6 +56,12 @@ void trace_state(const char *source, struct rocket_state *state, const char *fmt
 		       state->main_chute_deployed   ? 'M' : '-');
 		vprintf(fmt, args);
 		va_end(args);
+	}
+
+	if(trace_ltp && !strcmp(source, "sim"))
+	{
+	        vec3 ltp = ECEF_to_LTP(geodetic_to_ECEF(initial_geodetic), make_LTP_rotation(initial_geodetic), state->pos);
+		printf("%f,%f,%f\n", ltp.x, ltp.z, ltp.y);
 	}
 }
 
@@ -162,11 +173,6 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 {
 	/* TODO: accept an initial orientation for leaving the tower */
 	rocket_state->mass = ROCKET_EMPTY_MASS + FUEL_MASS;
-	const geodetic initial_geodetic = {
-		.latitude = M_PI_2,
-		.longitude = 0,
-		.altitude = 0,
-	};
 	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
 	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
 }
@@ -180,6 +186,8 @@ int main(int argc, char *argv[])
 			trace = true;
 		else if(!strcmp(argv[i], "--trace-physics"))
 			trace = trace_physics = true;
+		else if(!strcmp(argv[i], "--trace-ltp"))
+			trace_ltp = true;
 	}
 
 	init_rocket_state(&rocket_state);
