@@ -130,7 +130,7 @@ static unsigned quantize(double value, unsigned mask)
 	long int rounded = lround(value);
 	if(rounded < 0)
 		return 0;
-	if(rounded > (signed)mask)
+	if((unsigned long)rounded > mask)
 		return mask;
 	return rounded;
 }
