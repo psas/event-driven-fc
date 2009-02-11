@@ -149,7 +149,7 @@ static void update_simulator(void)
 {
 	trace_state("sim", &rocket_state, "\n");
 	accelerometer_sensor(quantize_accelerometer(accelerometer_measurement(&rocket_state), 0xfff));
-	if(t % (DELTA_T * 100) == 0)
+	if(t % 100000 == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state), 0xfff));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
