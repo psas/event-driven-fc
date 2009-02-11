@@ -201,7 +201,7 @@ static double quantized_gprob(unsigned measured, double expected, double standar
 	double width = standard_dev * M_SQRT2;
 	double hi = measured == mask ? 1 : (1 + erf((measured + 0.5 - expected) / width)) / 2;
 	double lo = measured == 0    ? 0 : (1 + erf((measured - 0.5 - expected) / width)) / 2;
-        double scale = (erf(0.5 / width) - erf(-0.5 / width)) / 2;
+	double scale = (erf(0.5 / width) - erf(-0.5 / width)) / 2;
 	return (hi - lo) / scale;
 }
 
