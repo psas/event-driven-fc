@@ -11,12 +11,7 @@
 #include "sensors.h"
 #include "ziggurat/random.h"
 
-/* Position and rotation use local tangent plane (LTP); when on the launch
- * tower, all values read 0. Positive x goes east.  Positive y goes north.
- * Positive z goes up.  Rotation vectors are in (pitch, yaw, roll) order:
- * rotation around x, y, and z, respectively.
- *
- * Unless explicitly stated otherwise, all values use SI units: meters,
+/* Unless explicitly stated otherwise, all values use SI units: meters,
  * meters/second, meters/second^2, radians.
  */
 
