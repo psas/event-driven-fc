@@ -6,21 +6,27 @@ OPTS := -O3 -ffast-math $(call cc-option,-fwhole-program -combine)
 WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
 CFLAGS := -MD -std=gnu99 $(OPTS) $(WARNINGS)
 
-TARGETS = z-sim coordtest
+TARGETS = z-sim lv2log coordtest
 
 all: $(TARGETS)
 
 ZIGGURAT_SOURCES = ziggurat/isaac.c ziggurat/random.c ziggurat/normal.c ziggurat/normal_tab.c ziggurat/polynomial.c ziggurat/polynomial_tab.c
-SOURCES = z-sim.c flight-computer.c physics.c pressure_sensor.c sensors.c resample-optimal.c coord.c mat.c vec.c $(ZIGGURAT_SOURCES)
+FC_SOURCES = flight-computer.c physics.c pressure_sensor.c sensors.c resample-optimal.c coord.c mat.c vec.c $(ZIGGURAT_SOURCES)
+ZSIM_SOURCES = z-sim.c sim-common.c $(FC_SOURCES)
 
-z-sim: $(SOURCES)
-	$(CC) $(CFLAGS) $(SOURCES) -lm -o $@
+z-sim: $(ZSIM_SOURCES)
+	$(CC) $(CFLAGS) $(ZSIM_SOURCES) -lm -o $@
 
 ziggurat/normal_tab.c:
 	make -C ziggurat normal_tab.c
 
 ziggurat/polynomial_tab.c:
 	make -C ziggurat polynomial_tab.c
+
+LV2LOG_SOURCES = lv2log.c sim-common.c $(FC_SOURCES)
+
+lv2log: $(LV2LOG_SOURCES)
+	$(CC) $(CFLAGS) $(LV2LOG_SOURCES) -lm -o $@
 
 COORDTEST_SOURCES = coord.c coordtest.c mat.c vec.c
 

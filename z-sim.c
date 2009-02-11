@@ -9,69 +9,23 @@
 #include "physics.h"
 #include "pressure_sensor.h"
 #include "sensors.h"
+#include "sim-common.h"
 
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
-static const geodetic initial_geodetic = {
-	.latitude = M_PI_2,
-	.longitude = 0,
-	.altitude = 0,
-};
 
-static bool trace, trace_physics, trace_ltp;
 static microseconds t;
-static enum state fc_state;
 static bool engine_ignited;
 static microseconds engine_ignition_time;
 
 /* State of the simulated rocket. */
 static struct rocket_state rocket_state;
 
-static ATTR_FORMAT(printf,1,2) void trace_printf(const char *fmt, ...)
+double current_timestamp(void)
 {
-	va_list args;
-	if(trace)
-	{
-		va_start(args, fmt);
-		printf("%9.3f: ", t / 1e6);
-		vprintf(fmt, args);
-		va_end(args);
-	}
-}
-
-void trace_state(const char *source, struct rocket_state *state, const char *fmt, ...)
-{
-	va_list args;
-	if(trace_physics)
-	{
-		va_start(args, fmt);
-		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc, %c%c%c",
-		       t / 1e6, source,
-		       ECEF_to_geodetic(state->pos).altitude,
-		       vec_abs(state->vel), vec_abs(state->acc),
-		       state->engine_burning        ? 'B' : '-',
-		       state->drogue_chute_deployed ? 'D' : '-',
-		       state->main_chute_deployed   ? 'M' : '-');
-		vprintf(fmt, args);
-		va_end(args);
-	}
-
-	if(trace_ltp && !strcmp(source, "sim"))
-	{
-	        vec3 ltp = ECEF_to_LTP(geodetic_to_ECEF(initial_geodetic), make_LTP_rotation(initial_geodetic), state->pos);
-		printf("%f,%f,%f\n", ltp.x, ltp.z, ltp.y);
-	}
-}
-
-void report_state(enum state state)
-{
-	if(fc_state != state)
-	{
-		trace_printf("State changed from %d to %d.\n", fc_state, state);
-		fc_state = state;
-	}
+	return t / 1e6;
 }
 
 /* FIXME: these functions should work more like they will with USB: set a flag,
@@ -120,11 +74,6 @@ void main_chute(bool go)
 	}
 }
 
-void enqueue_error(const char *msg)
-{
-	trace_printf("Error message from rocket: %s\n", msg);
-}
-
 static unsigned quantize(double value, unsigned mask)
 {
 	long int rounded = lround(value);
@@ -162,7 +111,7 @@ static void update_simulator(void)
 		trace_printf("Engine burn-out.\n");
 		rocket_state.engine_burning = false;
 	}
-	if(fc_state == STATE_PREFLIGHT)
+	if(last_reported_state() == STATE_PREFLIGHT)
 	{
 		trace_printf("Sending arm signal\n");
 		arm();
@@ -177,23 +126,18 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *const argv[])
 {
-	int i;
-	for(i = 1; i < argc; i++)
-	{
-		if(!strcmp(argv[i], "--trace"))
-			trace = true;
-		else if(!strcmp(argv[i], "--trace-physics"))
-			trace = trace_physics = true;
-		else if(!strcmp(argv[i], "--trace-ltp"))
-			trace_ltp = true;
-	}
-
+	parse_trace_args(argc, argv);
+	initial_geodetic = (geodetic) {
+		.latitude = M_PI_2,
+		.longitude = 0,
+		.altitude = 0,
+	};
 	init_rocket_state(&rocket_state);
 	init(initial_geodetic);
 
-	while(fc_state != STATE_RECOVERY)
+	while(last_reported_state() != STATE_RECOVERY)
 	{
 		t += DELTA_T;
 		update_rocket_state(&rocket_state, DELTA_T_SECONDS);
