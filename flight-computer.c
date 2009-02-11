@@ -161,12 +161,12 @@ void tick(double delta_t)
 		total_weight += particle->weight;
 
 	max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
+	which_particles = !which_particles;
+	particles = particle_arrays[which_particles];
 
 	update_state();
 
 	trace_state("bpf", &particles[max_belief].s, " weight %6.2f\n", total_weight);
-	which_particles = !which_particles;
-	particles = particle_arrays[which_particles];
 
 	for_each_particle(particle)
 	{
