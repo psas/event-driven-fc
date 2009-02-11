@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 	}
 
 	init_rocket_state(&rocket_state);
-	init();
+	init(initial_geodetic);
 
 	while(fc_state != STATE_RECOVERY)
 	{

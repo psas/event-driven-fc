@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "coord.h"
 #include "physics.h"
 
 enum state
@@ -22,7 +23,7 @@ typedef struct accelerometer_i {
 } accelerometer_i;
 
 /* Implemented by the flight computer */
-void init(void);
+void init(geodetic initial_geodetic);
 void tick(double delta_t);
 void arm(void);
 void launch(void);

@@ -42,27 +42,27 @@ static enum state state = STATE_PREFLIGHT;
 
 static bool can_arm;
 
+static geodetic initial_geodetic;
+static vec3 initial_ecef;
+static mat3 initial_rotation;
+
 static void change_state(enum state new_state)
 {
 	state = new_state;
 	report_state(state);
 }
 
-void init(void)
+void init(geodetic initial_geodetic_in)
 {
 	struct particle *particle;
-	const geodetic initial_geodetic = {
-		.latitude = M_PI_2,
-		.longitude = 0,
-		.altitude = 0,
-	};
-	vec3 initial = geodetic_to_ECEF(initial_geodetic);
-	mat3 initial_rotation = make_LTP_rotation(initial_geodetic);
+	initial_geodetic = initial_geodetic_in;
+	initial_ecef = geodetic_to_ECEF(initial_geodetic);
+	initial_rotation = make_LTP_rotation(initial_geodetic);
 	for_each_particle(particle)
 	{
 		particle->weight = 1.0;
 		particle->s.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
-		particle->s.pos = initial;
+		particle->s.pos = initial_ecef;
 		particle->s.rotpos = initial_rotation;
 	}
 }
@@ -96,7 +96,7 @@ static void update_state(void)
 		case STATE_PREFLIGHT:
 			/* FIXME: check if pointing in the right direction. */
 			for_each_particle(particle)
-				if(fabs(ECEF_to_geodetic(particle->s.pos).altitude) <= 2.0)
+				if(vec_abs(vec_sub(initial_ecef, particle->s.pos)) <= 5.0)
 					count++;
 			can_arm = count > PARTICLE_THRESHOLD;
 			break;
@@ -128,7 +128,7 @@ static void update_state(void)
 		case STATE_DROGUE_DESCENT:
 			drogue_chute(false);
 			for_each_particle(particle)
-				if(ECEF_to_geodetic(particle->s.pos).altitude <= 500.0)
+				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 500.0)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
 			{
@@ -139,7 +139,7 @@ static void update_state(void)
 		case STATE_MAIN_DESCENT:
 			main_chute(false);
 			for_each_particle(particle)
-				if(ECEF_to_geodetic(particle->s.pos).altitude <= 2.0
+				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 2.0
 				   && vec_abs(particle->s.vel) <= 0.01)
 					count++;
 			if(count > PARTICLE_THRESHOLD)
