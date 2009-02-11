@@ -199,13 +199,10 @@ void launch(void)
 static double quantized_gprob(unsigned measured, double expected, double standard_dev, unsigned mask)
 {
 	double width = standard_dev * M_SQRT2;
-	double hi = erf((measured + 0.5 - expected) / width);
-	double lo = erf((measured - 0.5 - expected) / width);
-	if(measured == 0)
-		return 1 + hi;
-	if(measured == mask)
-		return 1 - lo;
-	return hi - lo;
+	double hi = measured == mask ? 1 : (1 + erf((measured + 0.5 - expected) / width)) / 2;
+	double lo = measured == 0    ? 0 : (1 + erf((measured - 0.5 - expected) / width)) / 2;
+        double scale = (erf(0.5 / width) - erf(-0.5 / width)) / 2;
+	return (hi - lo) / scale;
 }
 
 void accelerometer_sensor(accelerometer_i acc)
