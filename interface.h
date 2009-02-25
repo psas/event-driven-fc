@@ -28,6 +28,7 @@ void tick(double delta_t);
 void arm(void);
 void launch(void);
 void accelerometer_sensor(accelerometer_i acc);
+void gps_sensor(vec3 ecef_pos, vec3 ecef_vel);
 void pressure_sensor(unsigned pressure);
 
 /* Implemented by the driver harness */

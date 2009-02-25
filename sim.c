@@ -100,6 +100,8 @@ static void update_simulator(void)
 	accelerometer_sensor(quantize_accelerometer(accelerometer_measurement(&rocket_state), 0xfff));
 	if(t % 100000 == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state), 0xfff));
+	if(t % 100000 == 50000)
+                gps_sensor(rocket_state.pos, rocket_state.vel);
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");

@@ -16,6 +16,8 @@
  */
 
 static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
+static const vec3 gps_pos_var = {{ 1, 1, 1 }};
+static const vec3 gps_vel_var = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
 
 static const double prob_engine_trans = 0.01;
@@ -216,6 +218,21 @@ void accelerometer_sensor(accelerometer_i acc)
 			quantized_gprob(acc.y, local.y, accelerometer_sd.y, 0xfff) *
 			quantized_gprob(acc.z, local.z, accelerometer_sd.z, 0xfff) *
 			quantized_gprob(acc.q, local.q, accelerometer_sd.q, 0xfff);
+	}
+}
+
+void gps_sensor(vec3 ecef_pos, vec3 ecef_vel)
+{
+	struct particle *particle;
+	for_each_particle(particle)
+	{
+		particle->weight *=
+			gprob(ecef_pos.x - particle->s.pos.x, gps_pos_var.x) *
+			gprob(ecef_pos.y - particle->s.pos.y, gps_pos_var.y) *
+			gprob(ecef_pos.z - particle->s.pos.z, gps_pos_var.z) *
+			gprob(ecef_vel.x - particle->s.vel.x, gps_vel_var.x) *
+			gprob(ecef_vel.y - particle->s.vel.y, gps_vel_var.y) *
+			gprob(ecef_vel.z - particle->s.vel.z, gps_vel_var.z);
 	}
 }
 
