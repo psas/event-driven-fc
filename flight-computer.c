@@ -30,7 +30,6 @@ static const double z_pos_sd = 100;
 static const double mass_sd  = 1;
 
 #define PARTICLE_COUNT 1000
-#define PARTICLE_THRESHOLD (PARTICLE_COUNT/2)
 static struct particle particle_arrays[2][PARTICLE_COUNT];
 static struct particle *particles = particle_arrays[0];
 static unsigned int which_particles = 0;
@@ -88,10 +87,10 @@ static void add_random_noise(double delta_t, struct particle *particle)
 	particle->s.mass  += delta_t * gaussian(mass_sd);
 }
 
-static void update_state(void)
+static void update_state(double total_weight)
 {
 	struct particle *particle;
-	unsigned int count = 0;
+	double consensus_weight = 0;
 
 	switch(state)
 	{
@@ -99,29 +98,29 @@ static void update_state(void)
 			/* FIXME: check if pointing in the right direction. */
 			for_each_particle(particle)
 				if(vec_abs(vec_sub(initial_ecef, particle->s.pos)) <= 5.0)
-					count++;
-			can_arm = count > PARTICLE_THRESHOLD;
+					consensus_weight += particle->weight;
+			can_arm = consensus_weight > total_weight/2;
 			break;
 		case STATE_ARMED:
 			for_each_particle(particle)
 				if(ECEF_to_rocket(&particle->s, particle->s.acc).z >= 1.0)
-					count++;
-			if(count > PARTICLE_THRESHOLD)
+					consensus_weight += particle->weight;
+			if(consensus_weight > total_weight/2)
 				change_state(STATE_BOOST);
 			break;
 		case STATE_BOOST:
 			ignite(false);
 			for_each_particle(particle)
 				if(ECEF_to_rocket(&particle->s, particle->s.acc).z <= 0.0)
-					count++;
-			if(count > PARTICLE_THRESHOLD)
+					consensus_weight += particle->weight;
+			if(consensus_weight > total_weight/2)
 				change_state(STATE_COAST);
 			break;
 		case STATE_COAST:
 			for_each_particle(particle)
 				if(vec_dot(particle->s.pos, particle->s.vel) < 0)
-					count++;
-			if(count > PARTICLE_THRESHOLD)
+					consensus_weight += particle->weight;
+			if(consensus_weight > total_weight/2)
 			{
 				drogue_chute(true);
 				change_state(STATE_DROGUE_DESCENT);
@@ -131,8 +130,8 @@ static void update_state(void)
 			drogue_chute(false);
 			for_each_particle(particle)
 				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 500.0)
-					count++;
-			if(count > PARTICLE_THRESHOLD)
+					consensus_weight += particle->weight;
+			if(consensus_weight > total_weight/2)
 			{
 				main_chute(true);
 				change_state(STATE_MAIN_DESCENT);
@@ -143,8 +142,8 @@ static void update_state(void)
 			for_each_particle(particle)
 				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 2.0
 				   && vec_abs(particle->s.vel) <= 0.01)
-					count++;
-			if(count > PARTICLE_THRESHOLD)
+					consensus_weight += particle->weight;
+			if(consensus_weight > total_weight/2)
 				change_state(STATE_RECOVERY);
 			break;
 		case STATE_RECOVERY:
@@ -166,7 +165,7 @@ void tick(double delta_t)
 	which_particles = !which_particles;
 	particles = particle_arrays[which_particles];
 
-	update_state();
+	update_state(total_weight);
 
 	trace_state("bpf", &particles[max_belief].s, " weight %6.2f\n", total_weight);
 
