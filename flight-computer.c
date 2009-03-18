@@ -70,13 +70,14 @@ void init(geodetic initial_geodetic_in)
 
 static void add_random_noise(double delta_t, struct particle *particle)
 {
-	if (uniform() < prob_engine_trans) {
+	double state_trans = uniform();
+	if ((state_trans -= prob_engine_trans) < 0) {
 		particle->s.engine_burning = ! particle->s.engine_burning;
 		particle->weight *= 0.1;
-	} else if (uniform() < prob_drogue_trans) {
+	} else if ((state_trans -= prob_drogue_trans) < 0) {
 		particle->s.drogue_chute_deployed = ! particle->s.drogue_chute_deployed;
 		particle->weight *= 0.1;
-	} else if (uniform() < prob_main_trans) {
+	} else if ((state_trans -= prob_main_trans) < 0) {
 		particle->s.main_chute_deployed = ! particle->s.main_chute_deployed;
 		particle->weight *= 0.1;
 	};
