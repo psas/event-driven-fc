@@ -68,7 +68,7 @@ void init(geodetic initial_geodetic_in)
 	}
 }
 
-static void add_random_noise(double delta_t, struct particle *particle)
+static void add_discrete_noise(double __attribute__((__unused__)) delta_t, struct particle *particle)
 {
 	double state_trans = uniform();
 	if ((state_trans -= prob_engine_trans) < 0) {
@@ -81,7 +81,10 @@ static void add_random_noise(double delta_t, struct particle *particle)
 		particle->s.main_chute_deployed = ! particle->s.main_chute_deployed;
 		particle->weight *= 0.1;
 	};
+}
 
+static void add_continuous_noise(double delta_t, struct particle *particle)
+{
 	particle->s.pos.z += delta_t * gaussian(z_pos_sd);
 	particle->s.vel.z += delta_t * gaussian(z_vel_sd);
 	particle->s.acc.z += delta_t * gaussian(z_acc_sd);
@@ -153,6 +156,14 @@ static void update_state(double total_weight)
 	}
 }
 
+/*
+1) update based on physics state
+2) add noise
+3) process sensor
+4) make control decisions
+5) possibly resample
+*/
+
 void tick(double delta_t)
 {
 	double total_weight = 0.0;
@@ -162,18 +173,19 @@ void tick(double delta_t)
 	for_each_particle(particle)
 		total_weight += particle->weight;
 
+	update_state(total_weight);
+
 	max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
 	which_particles = !which_particles;
 	particles = particle_arrays[which_particles];
-
-	update_state(total_weight);
 
 	trace_state("bpf", &particles[max_belief].s, " weight %6.2f\n", total_weight);
 
 	for_each_particle(particle)
 	{
-		add_random_noise(delta_t, particle);
+		add_discrete_noise(delta_t, particle);
 		update_rocket_state(&particle->s, delta_t);
+		add_continuous_noise(delta_t, particle);
 	}
 }
 
