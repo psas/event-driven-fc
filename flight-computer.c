@@ -142,7 +142,7 @@ static void update_state(double total_weight)
 			main_chute(false);
 			for_each_particle(particle)
 				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 2.0
-				   && vec_abs(particle->s.vel) <= 0.01)
+				   && vec_abs(particle->s.vel) <= 1.0)
 					consensus_weight += particle->weight;
 			if(consensus_weight > total_weight/2)
 				change_state(STATE_RECOVERY);
