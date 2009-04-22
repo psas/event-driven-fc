@@ -10,11 +10,17 @@
 #include "pressure_sensor.h"
 #include "sensors.h"
 #include "sim-common.h"
+#include "ziggurat/random.h"
 
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
+
+static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
+static const vec3 gps_pos_sd = {{ 1, 1, 1 }};
+static const vec3 gps_vel_sd = {{ 1, 1, 1 }};
+static const double pressure_sd = 1;
 
 static microseconds t;
 static bool engine_ignited;
@@ -94,14 +100,34 @@ static accelerometer_i quantize_accelerometer(accelerometer_d value, unsigned ma
 	};
 }
 
+static accelerometer_d add_accelerometer_noise(accelerometer_d value)
+{
+	return (accelerometer_d) {
+		.x = value.x + gaussian(accelerometer_sd.x),
+		.y = value.y + gaussian(accelerometer_sd.y),
+		.z = value.z + gaussian(accelerometer_sd.z),
+		.q = value.q + gaussian(accelerometer_sd.q),
+	};
+}
+
+static vec3 vec_noise(vec3 value, vec3 sd)
+{
+	return (vec3) {{
+		.x = value.x + gaussian(sd.x),
+		.y = value.y + gaussian(sd.y),
+		.z = value.z + gaussian(sd.z),
+	}};
+}
+
 static void update_simulator(void)
 {
 	trace_state("sim", &rocket_state, "\n");
-	accelerometer_sensor(quantize_accelerometer(accelerometer_measurement(&rocket_state), 0xfff));
+	accelerometer_sensor(quantize_accelerometer(add_accelerometer_noise(accelerometer_measurement(&rocket_state)), 0xfff));
 	if(t % 100000 == 0)
-		pressure_sensor(quantize(pressure_measurement(&rocket_state), 0xfff));
+		pressure_sensor(quantize(pressure_measurement(&rocket_state) + gaussian(pressure_sd), 0xfff));
 	if(t % 100000 == 50000)
-                gps_sensor(rocket_state.pos, rocket_state.vel);
+		gps_sensor(vec_noise(rocket_state.pos, gps_pos_sd),
+		           vec_noise(rocket_state.vel, gps_vel_sd));
 	if(!engine_ignited && t >= LAUNCH_TIME)
 	{
 		trace_printf("Sending launch signal\n");
