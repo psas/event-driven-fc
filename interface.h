@@ -22,12 +22,17 @@ typedef struct accelerometer_i {
 	uint16_t x, y, z, q;
 } accelerometer_i;
 
+typedef struct vec3_i {
+	uint16_t x, y, z;
+} vec3_i;
+
 /* Implemented by the flight computer */
 void init(geodetic initial_geodetic);
 void tick(double delta_t);
 void arm(void);
 void launch(void);
 void accelerometer_sensor(accelerometer_i acc);
+void gyroscope_sensor(vec3_i rotvel);
 void gps_sensor(vec3 ecef_pos, vec3 ecef_vel);
 void pressure_sensor(unsigned pressure);
 

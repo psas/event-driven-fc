@@ -18,6 +18,7 @@ static const microseconds DELTA_T = 1000;
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
 
 static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
+static const vec3 gyroscope_sd = {{ 1, 1, 1 }};
 static const vec3 gps_pos_sd = {{ 1, 1, 1 }};
 static const vec3 gps_vel_sd = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
@@ -100,6 +101,15 @@ static accelerometer_i quantize_accelerometer(accelerometer_d value, unsigned ma
 	};
 }
 
+static vec3_i quantize_vec(vec3 value, unsigned mask)
+{
+	return (vec3_i) {
+		.x = quantize(value.x, mask),
+		.y = quantize(value.y, mask),
+		.z = quantize(value.z, mask),
+	};
+}
+
 static accelerometer_d add_accelerometer_noise(accelerometer_d value)
 {
 	return (accelerometer_d) {
@@ -123,6 +133,8 @@ static void update_simulator(void)
 {
 	trace_state("sim", &rocket_state, "\n");
 	accelerometer_sensor(quantize_accelerometer(add_accelerometer_noise(accelerometer_measurement(&rocket_state)), 0xfff));
+	if(t % 2000 == 0)
+		gyroscope_sensor(quantize_vec(vec_noise(gyroscope_measurement(&rocket_state), gyroscope_sd), 0xfff));
 	if(t % 100000 == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state) + gaussian(pressure_sd), 0xfff));
 	if(t % 100000 == 50000)

@@ -16,6 +16,7 @@
  */
 
 static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
+static const vec3 gyroscope_sd = {{ 1, 1, 1 }};
 static const vec3 gps_pos_var = {{ 1, 1, 1 }};
 static const vec3 gps_vel_var = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
@@ -230,6 +231,19 @@ void accelerometer_sensor(accelerometer_i acc)
 			quantized_gprob(acc.y, local.y, accelerometer_sd.y, 0xfff) *
 			quantized_gprob(acc.z, local.z, accelerometer_sd.z, 0xfff) *
 			quantized_gprob(acc.q, local.q, accelerometer_sd.q, 0xfff);
+	}
+}
+
+void gyroscope_sensor(vec3_i rotvel)
+{
+	struct particle *particle;
+	for_each_particle(particle)
+	{
+		vec3 local = gyroscope_measurement(&particle->s);
+		particle->weight *=
+			quantized_gprob(rotvel.x, local.x, gyroscope_sd.x, 0xfff) *
+			quantized_gprob(rotvel.y, local.y, gyroscope_sd.y, 0xfff) *
+			quantized_gprob(rotvel.z, local.z, gyroscope_sd.z, 0xfff);
 	}
 }
 
