@@ -170,6 +170,7 @@ static void update_state(double total_weight)
 
 void tick(double delta_t)
 {
+	static double last_resample = 0.0;
 	double total_weight = 0.0;
 	int max_belief;
 	struct particle *particle;
@@ -179,9 +180,24 @@ void tick(double delta_t)
 
 	update_state(total_weight);
 
-	max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
-	which_particles = !which_particles;
-	particles = particle_arrays[which_particles];
+	last_resample += delta_t;
+	if(total_weight < PARTICLE_COUNT / 10000.0 || last_resample >= 1.0)
+	{
+		last_resample = 0.0;
+		max_belief = resample_optimal(total_weight, PARTICLE_COUNT, particles, PARTICLE_COUNT, particle_arrays[!which_particles]);
+		which_particles = !which_particles;
+		particles = particle_arrays[which_particles];
+	}
+	else
+	{
+		max_belief = 0;
+		for_each_particle(particle)
+		{
+			particle->weight *= PARTICLE_COUNT / total_weight;
+			if(particle->weight > particles[max_belief].weight)
+				max_belief = particle - particles;
+		}
+	}
 
 	trace_state("bpf", &particles[max_belief].s, " weight %6.2f\n", total_weight);
 
