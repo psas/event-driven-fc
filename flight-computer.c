@@ -28,7 +28,7 @@ static const double prob_main_trans  = 0.01;
 static const double z_acc_sd = 100;
 static const double z_vel_sd = 100;
 static const double z_pos_sd = 100;
-static const double mass_sd  = 1;
+static const double mass_sd  = 0.1;
 
 #define PARTICLE_COUNT 1000
 static struct particle particle_arrays[2][PARTICLE_COUNT];
