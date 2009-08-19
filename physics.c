@@ -62,7 +62,7 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 	vec3 force;
 
 	if(rocket_state->engine_burning)
-		rocket_state->mass -= FUEL_MASS * delta_t / ENGINE_BURN_TIME;
+		rocket_state->mass -= FUEL_MASS * delta_t / (ENGINE_BURN_TIME / 1e6);
 
 	/* TODO: add coefficient of normal force at the center of pressure */
 	force = thrust_force(rocket_state);
