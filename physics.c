@@ -57,7 +57,7 @@ static vec3 thrust_force(struct rocket_state *rocket_state)
 	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, ENGINE_THRUST }});
 }
 
-static vec3 expected_acceleration(struct rocket_state *rocket_state)
+vec3 expected_acceleration(struct rocket_state *rocket_state)
 {
 	/* TODO: add coefficient of normal force at the center of pressure */
 	vec3 force = vec_add(thrust_force(rocket_state), drag_force(rocket_state));
@@ -73,13 +73,5 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 	 * such as Runge-Kutta or leapfrog integration. */
 	rocket_state->pos = vec_add(rocket_state->pos, vec_scale(rocket_state->vel, delta_t));
 	rocket_state->vel = vec_add(rocket_state->vel, vec_scale(rocket_state->acc, delta_t));
-	rocket_state->acc = expected_acceleration(rocket_state);
 	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
-
-	/* Implement the ground: When you find yourself in a hole, stop
-	 * digging. */
-	if(ECEF_to_geodetic(rocket_state->pos).altitude < 0 &&
-	   (vec_dot(rocket_state->pos, rocket_state->vel) < 0 ||
-	    vec_dot(rocket_state->pos, rocket_state->acc) < 0))
-		rocket_state->acc = rocket_state->vel = (vec3) {{ 0, 0, 0 }};
 }

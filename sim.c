@@ -156,6 +156,13 @@ static void update_simulator(void)
 		trace_printf("Sending arm signal\n");
 		arm();
 	}
+	if(engine_ignition_time > 0)
+	{
+		if(ECEF_to_geodetic(rocket_state.pos).altitude < initial_geodetic.altitude)
+			rocket_state.acc = rocket_state.vel = (vec3) {{ 0, 0, 0 }};
+		else
+			rocket_state.acc = expected_acceleration(&rocket_state);
+	}
 }
 
 static void init_rocket_state(struct rocket_state *rocket_state)

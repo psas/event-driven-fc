@@ -74,12 +74,15 @@ static void add_discrete_noise(double __attribute__((__unused__)) delta_t, struc
 	double state_trans = uniform();
 	if ((state_trans -= prob_engine_trans) < 0) {
 		particle->s.engine_burning = ! particle->s.engine_burning;
+		particle->s.acc = expected_acceleration(&particle->s);
 		particle->weight *= 0.1;
 	} else if ((state_trans -= prob_drogue_trans) < 0) {
 		particle->s.drogue_chute_deployed = ! particle->s.drogue_chute_deployed;
+		particle->s.acc = expected_acceleration(&particle->s);
 		particle->weight *= 0.1;
 	} else if ((state_trans -= prob_main_trans) < 0) {
 		particle->s.main_chute_deployed = ! particle->s.main_chute_deployed;
+		particle->s.acc = expected_acceleration(&particle->s);
 		particle->weight *= 0.1;
 	};
 }
