@@ -20,10 +20,10 @@ vec3 rocket_to_ECEF(struct rocket_state *rocket_state, vec3 v)
 	return mat3_vec3_mul(mat3_transpose(rocket_state->rotpos), v);
 }
 
-vec3 gravity_force(struct rocket_state *rocket_state)
+vec3 gravity_acceleration(struct rocket_state *rocket_state)
 {
 	/* TODO: apply gravity at the approximate center of mass */
-	return vec_scale(rocket_state->pos, -EARTH_GRAVITY * rocket_state->mass / vec_abs(rocket_state->pos));
+	return vec_scale(rocket_state->pos, -EARTH_GRAVITY / vec_abs(rocket_state->pos));
 }
 
 static vec3 drag_force(struct rocket_state *rocket_state)
@@ -57,23 +57,23 @@ static vec3 thrust_force(struct rocket_state *rocket_state)
 	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, ENGINE_THRUST }});
 }
 
+static vec3 expected_acceleration(struct rocket_state *rocket_state)
+{
+	/* TODO: add coefficient of normal force at the center of pressure */
+	vec3 force = vec_add(thrust_force(rocket_state), drag_force(rocket_state));
+	return vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/rocket_state->mass));
+}
+
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
-	vec3 force;
-
 	if(rocket_state->engine_burning)
 		rocket_state->mass -= FUEL_MASS * delta_t / (ENGINE_BURN_TIME / 1e6);
-
-	/* TODO: add coefficient of normal force at the center of pressure */
-	force = thrust_force(rocket_state);
-	force = vec_add(force, gravity_force(rocket_state));
-	force = vec_add(force, drag_force(rocket_state));
 
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
 	rocket_state->pos = vec_add(rocket_state->pos, vec_scale(rocket_state->vel, delta_t));
 	rocket_state->vel = vec_add(rocket_state->vel, vec_scale(rocket_state->acc, delta_t));
-	rocket_state->acc = vec_scale(force, 1/rocket_state->mass);
+	rocket_state->acc = expected_acceleration(rocket_state);
 	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
 
 	/* Implement the ground: When you find yourself in a hole, stop
