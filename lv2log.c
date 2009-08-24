@@ -41,6 +41,11 @@ void main_chute(bool go)
 		trace_printf("FC stopped deploying main chute\n");
 }
 
+static uint16_t read16(const unsigned char *buf)
+{
+	return (uint16_t) buf[0] << 8 | buf[1];
+}
+
 struct canmsg_t {
 	uint32_t        id;             /* id<<5 + rtr<<4 + len */
 	uint32_t        timestamp;
@@ -85,15 +90,15 @@ int main(int argc, const char *const argv[])
 			break;
 		case /* IMU_ACCEL_DATA */ 0x1B88:
 			accelerometer_sensor((accelerometer_i) {
-				.x = (uint16_t) msg.data[0] << 8 | msg.data[1],
-				.y = (uint16_t) msg.data[2] << 8 | msg.data[3],
-				.z = (uint16_t) msg.data[4] << 8 | msg.data[5],
-				.q = (uint16_t) msg.data[6] << 8 | msg.data[7],
+				.x = read16(msg.data + 0),
+				.y = read16(msg.data + 2),
+				.z = read16(msg.data + 4),
+				.q = read16(msg.data + 6),
 			});
 			processed_message = true;
 			break;
 		case /* PRESS_REPORT_DATA */ 0x6322:
-			pressure_sensor((uint16_t) msg.data[0] << 8 | msg.data[1]);
+			pressure_sensor(read16(msg.data));
 			processed_message = true;
 			break;
 		case /* REC_SET_PYRO */ 0x0802:
