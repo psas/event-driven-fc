@@ -129,6 +129,17 @@ static vec3 vec_noise(vec3 value, vec3 sd)
 	}};
 }
 
+static void ground_clip(vec3 *v, mat3 rot)
+{
+	const vec3 zero = {{ 0, 0, 0 }};
+	vec3 ltp = ECEF_to_LTP(zero, rot, *v);
+	if(ltp.z < 0)
+	{
+		ltp.z = 0;
+		*v = LTP_to_ECEF(zero, rot, ltp);
+	}
+}
+
 static void update_simulator(void)
 {
 	trace_state("sim", &rocket_state, "\n");
@@ -156,12 +167,18 @@ static void update_simulator(void)
 		trace_printf("Sending arm signal\n");
 		arm();
 	}
-	if(engine_ignition_time > 0)
+	rocket_state.acc = expected_acceleration(&rocket_state);
+	geodetic pos = ECEF_to_geodetic(rocket_state.pos);
+	if(pos.altitude <= initial_geodetic.altitude)
 	{
-		if(ECEF_to_geodetic(rocket_state.pos).altitude < initial_geodetic.altitude)
-			rocket_state.acc = rocket_state.vel = (vec3) {{ 0, 0, 0 }};
-		else
-			rocket_state.acc = expected_acceleration(&rocket_state);
+		if(pos.altitude < initial_geodetic.altitude)
+		{
+			pos.altitude = initial_geodetic.altitude;
+			rocket_state.pos = geodetic_to_ECEF(pos);
+		}
+		mat3 rot = make_LTP_rotation(pos);
+		ground_clip(&rocket_state.vel, rot);
+		ground_clip(&rocket_state.acc, rot);
 	}
 }
 
