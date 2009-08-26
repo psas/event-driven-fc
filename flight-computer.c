@@ -25,9 +25,9 @@ static const double prob_engine_trans = 0.01;
 static const double prob_drogue_trans = 0.01;
 static const double prob_main_trans  = 0.01;
 
-static const double z_acc_sd = 100;
-static const double z_vel_sd = 100;
-static const double z_pos_sd = 100;
+static const double z_acc_sd = 1;
+static const double z_vel_sd = 1;
+static const double z_pos_sd = 1;
 static const double mass_sd  = 0.1;
 
 #define PARTICLE_COUNT 1000
@@ -89,9 +89,6 @@ static void add_discrete_noise(double __attribute__((__unused__)) delta_t, struc
 
 static void add_continuous_noise(double delta_t, struct particle *particle)
 {
-	particle->s.pos.z += delta_t * gaussian(z_pos_sd);
-	particle->s.vel.z += delta_t * gaussian(z_vel_sd);
-	particle->s.acc.z += delta_t * gaussian(z_acc_sd);
 	particle->s.mass  += delta_t * gaussian(mass_sd);
 }
 
@@ -244,6 +241,7 @@ void accelerometer_sensor(accelerometer_i acc)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
+		particle->s.acc.z += gaussian(z_acc_sd);
 		accelerometer_d local = accelerometer_measurement(&particle->s);
 		particle->weight *=
 			quantized_gprob(acc.x, local.x, accelerometer_sd.x, 0xfff) *
@@ -271,6 +269,8 @@ void gps_sensor(vec3 ecef_pos, vec3 ecef_vel)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
+		particle->s.pos.z += gaussian(z_pos_sd);
+		particle->s.vel.z += gaussian(z_vel_sd);
 		particle->weight *=
 			gprob(ecef_pos.x - particle->s.pos.x, gps_pos_var.x) *
 			gprob(ecef_pos.y - particle->s.pos.y, gps_pos_var.y) *
@@ -286,6 +286,7 @@ void pressure_sensor(unsigned pressure)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
+		particle->s.pos.z += gaussian(z_pos_sd);
 		double local = pressure_measurement(&particle->s);
 		particle->weight *= quantized_gprob(pressure, local, pressure_sd, 0xfff);
 	}
