@@ -44,14 +44,10 @@ void trace_state(const char *source, struct rocket_state *state, const char *fmt
 	if(trace_physics)
 	{
 		va_start(args, fmt);
-		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc, %4.1f kg, %c%c%c",
+		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc",
 		       current_timestamp(), source,
 		       ECEF_to_geodetic(state->pos).altitude,
-		       vec_abs(state->vel), vec_abs(state->acc),
-		       state->mass,
-		       state->engine_burning        ? 'B' : '-',
-		       state->drogue_chute_deployed ? 'D' : '-',
-		       state->main_chute_deployed   ? 'M' : '-');
+		       vec_abs(state->vel), vec_abs(state->acc));
 		vprintf(fmt, args);
 		va_end(args);
 	}

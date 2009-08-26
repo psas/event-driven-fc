@@ -1,15 +1,6 @@
 #include "physics.h"
 #include "coord.h"
 
-/* Drag constants */
-static const double MAIN_CHUTE_DRAG_COEFFICIENT = 0.8;
-static const double MAIN_CHUTE_CROSS_SECTION = 7.429812032713523;
-static const double DROGUE_CHUTE_DRAG_COEFFICIENT = 0.8;
-static const double DROGUE_CHUTE_CROSS_SECTION = 0.836954282802814;
-static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
-static const double ROCKET_CROSS_SECTION = 0.015327901242699;
-static const double AIR_DENSITY = 1.225;
-
 vec3 ECEF_to_rocket(struct rocket_state *rocket_state, vec3 v)
 {
 	return mat3_vec3_mul(rocket_state->rotpos, v);
@@ -26,49 +17,8 @@ vec3 gravity_acceleration(struct rocket_state *rocket_state)
 	return vec_scale(rocket_state->pos, -EARTH_GRAVITY / vec_abs(rocket_state->pos));
 }
 
-static vec3 drag_force(struct rocket_state *rocket_state)
-{
-	/* TODO: fix drag for rocket orientation */
-	double drag_coefficient, cross_section;
-        if(rocket_state->main_chute_deployed)
-	{
-		drag_coefficient = MAIN_CHUTE_DRAG_COEFFICIENT;
-		cross_section = MAIN_CHUTE_CROSS_SECTION;
-	}
-	else if(rocket_state->drogue_chute_deployed)
-	{
-		drag_coefficient = DROGUE_CHUTE_DRAG_COEFFICIENT;
-		cross_section = DROGUE_CHUTE_CROSS_SECTION;
-	}
-	else
-	{
-		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
-		cross_section = ROCKET_CROSS_SECTION;
-	}
-	return vec_scale(rocket_state->vel, -0.5 * AIR_DENSITY
-	                 * vec_abs(rocket_state->vel)
-	                 * cross_section * drag_coefficient);
-}
-
-static vec3 thrust_force(struct rocket_state *rocket_state)
-{
-	if(!rocket_state->engine_burning)
-	        return (vec3){{ 0, 0, 0 }};
-	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, ENGINE_THRUST }});
-}
-
-vec3 expected_acceleration(struct rocket_state *rocket_state)
-{
-	/* TODO: add coefficient of normal force at the center of pressure */
-	vec3 force = vec_add(thrust_force(rocket_state), drag_force(rocket_state));
-	return vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/rocket_state->mass));
-}
-
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
-	if(rocket_state->engine_burning)
-		rocket_state->mass -= FUEL_MASS * delta_t / (ENGINE_BURN_TIME / 1e6);
-
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
 	rocket_state->pos = vec_add(rocket_state->pos, vec_scale(rocket_state->vel, delta_t));

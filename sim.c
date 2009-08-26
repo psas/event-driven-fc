@@ -23,9 +23,22 @@ static const vec3 gps_pos_sd = {{ 1, 1, 1 }};
 static const vec3 gps_vel_sd = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
 
+/* Drag constants */
+static const double MAIN_CHUTE_DRAG_COEFFICIENT = 0.8;
+static const double MAIN_CHUTE_CROSS_SECTION = 7.429812032713523;
+static const double DROGUE_CHUTE_DRAG_COEFFICIENT = 0.8;
+static const double DROGUE_CHUTE_CROSS_SECTION = 0.836954282802814;
+static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
+static const double ROCKET_CROSS_SECTION = 0.015327901242699;
+static const double AIR_DENSITY = 1.225;
+
 static microseconds t;
+static double mass;
 static bool engine_ignited;
 static microseconds engine_ignition_time;
+static bool engine_burning;
+static bool drogue_chute_deployed;
+static bool main_chute_deployed;
 
 /* State of the simulated rocket. */
 static struct rocket_state rocket_state;
@@ -45,7 +58,7 @@ void ignite(bool go)
 		{
 			trace_printf("Engine ignition\n");
 			engine_ignited = true;
-			rocket_state.engine_burning = true;
+			engine_burning = true;
 			engine_ignition_time = t;
 		}
 		else
@@ -57,10 +70,10 @@ void drogue_chute(bool go)
 {
 	if(go)
 	{
-		if(!rocket_state.drogue_chute_deployed)
+		if(!drogue_chute_deployed)
 		{
 			trace_printf("Drogue chute deployed\n");
-			rocket_state.drogue_chute_deployed = true;
+			drogue_chute_deployed = true;
 		}
 		else
 			trace_printf("Rocket trying to redeploy drogue chute.\n");
@@ -71,14 +84,58 @@ void main_chute(bool go)
 {
 	if(go)
 	{
-		if(!rocket_state.main_chute_deployed)
+		if(!main_chute_deployed)
 		{
 			trace_printf("Main chute deployed\n");
-			rocket_state.main_chute_deployed = true;
+			main_chute_deployed = true;
 		}
 		else
 			trace_printf("Rocket trying to redeploy main chute.\n");
 	}
+}
+
+static vec3 drag_force(struct rocket_state *rocket_state)
+{
+	/* TODO: fix drag for rocket orientation */
+	double drag_coefficient, cross_section;
+        if(main_chute_deployed)
+	{
+		drag_coefficient = MAIN_CHUTE_DRAG_COEFFICIENT;
+		cross_section = MAIN_CHUTE_CROSS_SECTION;
+	}
+	else if(drogue_chute_deployed)
+	{
+		drag_coefficient = DROGUE_CHUTE_DRAG_COEFFICIENT;
+		cross_section = DROGUE_CHUTE_CROSS_SECTION;
+	}
+	else
+	{
+		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
+		cross_section = ROCKET_CROSS_SECTION;
+	}
+	return vec_scale(rocket_state->vel, -0.5 * AIR_DENSITY
+	                 * vec_abs(rocket_state->vel)
+	                 * cross_section * drag_coefficient);
+}
+
+static vec3 thrust_force(struct rocket_state *rocket_state)
+{
+	if(!engine_burning)
+	        return (vec3){{ 0, 0, 0 }};
+	const microseconds ENGINE_RAMP_TIME = 200000;
+	double scale = 1.0;
+	if(t - engine_ignition_time < ENGINE_RAMP_TIME)
+		scale = (double) (t - engine_ignition_time) / ENGINE_RAMP_TIME;
+	else if(t - engine_ignition_time > ENGINE_BURN_TIME - ENGINE_RAMP_TIME)
+		scale = (double) (engine_ignition_time + ENGINE_BURN_TIME - t) / ENGINE_RAMP_TIME;
+	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, scale * ENGINE_THRUST }});
+}
+
+static vec3 expected_acceleration(struct rocket_state *rocket_state)
+{
+	/* TODO: add coefficient of normal force at the center of pressure */
+	vec3 force = vec_add(thrust_force(rocket_state), drag_force(rocket_state));
+	return vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
 }
 
 static unsigned quantize(double value, unsigned mask)
@@ -142,7 +199,11 @@ static void ground_clip(vec3 *v, mat3 rot)
 
 static void update_simulator(void)
 {
-	trace_state("sim", &rocket_state, "\n");
+	trace_state("sim", &rocket_state, ", %4.1f kg, %c%c%c\n",
+	       mass,
+	       engine_burning        ? 'B' : '-',
+	       drogue_chute_deployed ? 'D' : '-',
+	       main_chute_deployed   ? 'M' : '-');
 	accelerometer_sensor(quantize_accelerometer(add_accelerometer_noise(accelerometer_measurement(&rocket_state)), 0xfff));
 	if(t % 2000 == 0)
 		gyroscope_sensor(quantize_vec(vec_noise(gyroscope_measurement(&rocket_state), gyroscope_sd), 0xfff));
@@ -156,17 +217,19 @@ static void update_simulator(void)
 		trace_printf("Sending launch signal\n");
 		launch();
 	}
-	if(rocket_state.engine_burning
+	if(engine_burning
 	   && t - engine_ignition_time >= ENGINE_BURN_TIME)
 	{
 		trace_printf("Engine burn-out.\n");
-		rocket_state.engine_burning = false;
+		engine_burning = false;
 	}
 	if(last_reported_state() == STATE_PREFLIGHT)
 	{
 		trace_printf("Sending arm signal\n");
 		arm();
 	}
+	if(engine_burning)
+		mass -= FUEL_MASS * DELTA_T_SECONDS / (ENGINE_BURN_TIME / 1e6);
 	rocket_state.acc = expected_acceleration(&rocket_state);
 	geodetic pos = ECEF_to_geodetic(rocket_state.pos);
 	if(pos.altitude <= initial_geodetic.altitude)
@@ -185,7 +248,7 @@ static void update_simulator(void)
 static void init_rocket_state(struct rocket_state *rocket_state)
 {
 	/* TODO: accept an initial orientation for leaving the tower */
-	rocket_state->mass = ROCKET_EMPTY_MASS + FUEL_MASS;
+	mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
 	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
 }

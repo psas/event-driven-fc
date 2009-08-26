@@ -21,14 +21,9 @@ static const vec3 gps_pos_var = {{ 1, 1, 1 }};
 static const vec3 gps_vel_var = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
 
-static const double prob_engine_trans = 0.01;
-static const double prob_drogue_trans = 0.01;
-static const double prob_main_trans  = 0.01;
-
 static const double z_acc_sd = 1;
 static const double z_vel_sd = 1;
 static const double z_pos_sd = 1;
-static const double mass_sd  = 0.1;
 
 #define PARTICLE_COUNT 1000
 static struct particle particle_arrays[2][PARTICLE_COUNT];
@@ -63,33 +58,9 @@ void init(geodetic initial_geodetic_in)
 	for_each_particle(particle)
 	{
 		particle->weight = 1.0;
-		particle->s.mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 		particle->s.pos = initial_ecef;
 		particle->s.rotpos = initial_rotation;
 	}
-}
-
-static void add_discrete_noise(double __attribute__((__unused__)) delta_t, struct particle *particle)
-{
-	double state_trans = uniform();
-	if ((state_trans -= prob_engine_trans) < 0) {
-		particle->s.engine_burning = ! particle->s.engine_burning;
-		particle->s.acc = expected_acceleration(&particle->s);
-		particle->weight *= 0.1;
-	} else if ((state_trans -= prob_drogue_trans) < 0) {
-		particle->s.drogue_chute_deployed = ! particle->s.drogue_chute_deployed;
-		particle->s.acc = expected_acceleration(&particle->s);
-		particle->weight *= 0.1;
-	} else if ((state_trans -= prob_main_trans) < 0) {
-		particle->s.main_chute_deployed = ! particle->s.main_chute_deployed;
-		particle->s.acc = expected_acceleration(&particle->s);
-		particle->weight *= 0.1;
-	};
-}
-
-static void add_continuous_noise(double delta_t, struct particle *particle)
-{
-	particle->s.mass  += delta_t * gaussian(mass_sd);
 }
 
 static void update_state(double total_weight)
@@ -199,11 +170,7 @@ void tick(double delta_t)
 	trace_state("bpf", &particles[max_belief].s, " weight %6.2f\n", total_weight);
 
 	for_each_particle(particle)
-	{
-		add_discrete_noise(delta_t, particle);
 		update_rocket_state(&particle->s, delta_t);
-		add_continuous_noise(delta_t, particle);
-	}
 }
 
 void arm(void)
