@@ -7,15 +7,17 @@
 #include "coord.h"
 #include "physics.h"
 
+/* Flight computer begins in preflight state. When preflight checks pass
+ * and an "arm" command is received, switch to armed state. However, at
+ * any time, if the rocket doesn't seem to be sitting on the ground,
+ * switch to flight state. When the rocket seems to be sitting on the
+ * ground and it was in flight state, switch to recovery state. */
 enum state
 {
-	STATE_PREFLIGHT,      // until both given command to arm, and ready to arm
-	STATE_ARMED,          // until launch command given and upward thrust detected
-	STATE_BOOST,          // until burnout detected
-	STATE_COAST,          // until apogee detected and drogue deployed
-	STATE_DROGUE_DESCENT, // until z < 500m
-	STATE_MAIN_DESCENT,   // until touchdown
-	STATE_RECOVERY        // forever
+	STATE_PREFLIGHT,
+	STATE_ARMED,
+	STATE_FLIGHT,
+	STATE_RECOVERY
 };
 
 typedef struct accelerometer_i {

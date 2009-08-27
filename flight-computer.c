@@ -63,69 +63,71 @@ void init(geodetic initial_geodetic_in)
 	}
 }
 
-static void update_state(double total_weight)
+static void hysteresis(double *duration, double delta_t, bool set)
 {
-	struct particle *particle;
-	double consensus_weight = 0;
+	if(set)
+		*duration += delta_t;
+	else
+		*duration = 0;
+}
 
-	switch(state)
+static bool ratelimit(double *delay, double delta_t, bool enable)
+{
+	if((*delay -= delta_t) > 0)
+		return false;
+	*delay = 0;
+	if(!enable)
+		return false;
+	*delay = 1.0;
+	return true;
+}
+
+static void update_state(double total_weight, double delta_t)
+{
+	static double on_ground_for, not_on_ground_for;
+	static double deploy_drogue_for, drogue_wait;
+	static double deploy_main_for, main_wait;
+
+	struct particle *particle;
+	double on_ground = 0;
+	double deploy_drogue = 0;
+	double deploy_main = 0;
+
+	for_each_particle(particle)
 	{
-		case STATE_PREFLIGHT:
-			/* FIXME: check if pointing in the right direction. */
-			for_each_particle(particle)
-				if(vec_abs(vec_sub(initial_ecef, particle->s.pos)) <= 5.0)
-					consensus_weight += particle->weight;
-			can_arm = consensus_weight > total_weight/2;
-			break;
-		case STATE_ARMED:
-			for_each_particle(particle)
-				if(ECEF_to_rocket(&particle->s, particle->s.acc).z >= 1.0)
-					consensus_weight += particle->weight;
-			if(consensus_weight > total_weight/2)
-				change_state(STATE_BOOST);
-			break;
-		case STATE_BOOST:
-			ignite(false);
-			for_each_particle(particle)
-				if(ECEF_to_rocket(&particle->s, particle->s.acc).z <= 0.0)
-					consensus_weight += particle->weight;
-			if(consensus_weight > total_weight/2)
-				change_state(STATE_COAST);
-			break;
-		case STATE_COAST:
-			for_each_particle(particle)
-				if(vec_dot(particle->s.pos, particle->s.vel) < 0)
-					consensus_weight += particle->weight;
-			if(consensus_weight > total_weight/2)
-			{
-				drogue_chute(true);
-				change_state(STATE_DROGUE_DESCENT);
-			}
-			break;
-		case STATE_DROGUE_DESCENT:
-			drogue_chute(false);
-			for_each_particle(particle)
-				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 500.0)
-					consensus_weight += particle->weight;
-			if(consensus_weight > total_weight/2)
-			{
-				main_chute(true);
-				change_state(STATE_MAIN_DESCENT);
-			}
-			break;
-		case STATE_MAIN_DESCENT:
-			main_chute(false);
-			for_each_particle(particle)
-				if(ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 2.0
-				   && vec_abs(particle->s.vel) <= 1.0)
-					consensus_weight += particle->weight;
-			if(consensus_weight > total_weight/2)
-				change_state(STATE_RECOVERY);
-			break;
-		case STATE_RECOVERY:
-			/* profit(); */
-			break;
+		double vel = vec_abs(particle->s.vel);
+		double acc = vec_abs(particle->s.acc);
+		if(vel <= 2.0 && acc <= 2.0)
+			on_ground += particle->weight;
+		bool going_down = vec_dot(particle->s.pos, particle->s.vel) < 0;
+		if(going_down)
+		{
+			bool in_freefall = vec_abs(vec_sub(gravity_acceleration(&particle->s), particle->s.acc)) <= 2.0;
+			if(in_freefall)
+				deploy_drogue += particle->weight;
+			bool low_altitude = ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 500.0;
+			if(low_altitude && acc <= 1.0 && vel >= 10.0)
+				deploy_main += particle->weight;
+		}
 	}
+
+	hysteresis(&on_ground_for, delta_t, on_ground > total_weight / 2);
+	hysteresis(&not_on_ground_for, delta_t, on_ground <= total_weight / 2);
+	hysteresis(&deploy_drogue_for, delta_t, deploy_drogue > total_weight / 2);
+	hysteresis(&deploy_main_for, delta_t, deploy_main > total_weight / 2);
+
+	/* FIXME: check if pointing in the right direction. */
+	can_arm = on_ground_for > 0.25;
+
+	if(not_on_ground_for > 0.5 && state != STATE_FLIGHT)
+		change_state(STATE_FLIGHT);
+	if(on_ground_for > 1.0 && state == STATE_FLIGHT)
+		change_state(STATE_RECOVERY);
+
+	if(ratelimit(&drogue_wait, delta_t, deploy_drogue_for > 0.25))
+		drogue_chute(true);
+	if(ratelimit(&main_wait, delta_t, deploy_main_for > 0.25))
+		main_chute(true);
 }
 
 /*
@@ -146,7 +148,7 @@ void tick(double delta_t)
 	for_each_particle(particle)
 		total_weight += particle->weight;
 
-	update_state(total_weight);
+	update_state(total_weight, delta_t);
 
 	last_resample += delta_t;
 	if(total_weight < PARTICLE_COUNT / 10000.0 || last_resample >= 1.0)
