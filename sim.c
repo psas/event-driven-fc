@@ -151,7 +151,7 @@ static void update_simulator(void)
 	if(t % 100000 == 50000)
 		gps_sensor(vec_noise(rocket_state.pos, gps_pos_sd),
 		           vec_noise(rocket_state.vel, gps_vel_sd));
-	if(!engine_ignited && t >= LAUNCH_TIME)
+	if(!engine_ignited && t >= LAUNCH_TIME && last_reported_state() == STATE_ARMED)
 	{
 		trace_printf("Sending launch signal\n");
 		launch();
