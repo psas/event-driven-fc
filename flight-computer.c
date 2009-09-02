@@ -100,13 +100,13 @@ static void update_state(double total_weight, double delta_t)
 		if(vel <= 2.0 && acc <= 2.0)
 			on_ground += particle->weight;
 		bool going_down = vec_dot(particle->s.pos, particle->s.vel) < 0;
-		if(going_down)
+		if(state == STATE_FLIGHT && going_down)
 		{
 			bool in_freefall = vec_abs(vec_sub(gravity_acceleration(&particle->s), particle->s.acc)) <= 2.0;
 			if(in_freefall)
 				deploy_drogue += particle->weight;
 			bool low_altitude = ECEF_to_geodetic(particle->s.pos).altitude - initial_geodetic.altitude <= 500.0;
-			if(low_altitude && acc <= 1.0 && vel >= 10.0)
+			if(low_altitude && vel >= 10.0)
 				deploy_main += particle->weight;
 		}
 	}
@@ -119,7 +119,7 @@ static void update_state(double total_weight, double delta_t)
 	/* FIXME: check if pointing in the right direction. */
 	can_arm = on_ground_for > 0.25;
 
-	if(not_on_ground_for > 0.5 && state != STATE_FLIGHT)
+	if(not_on_ground_for > 1.0 && state != STATE_FLIGHT)
 		change_state(STATE_FLIGHT);
 	if(on_ground_for > 1.0 && state == STATE_FLIGHT)
 		change_state(STATE_RECOVERY);
