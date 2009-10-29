@@ -84,6 +84,13 @@ static vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /
 	}};
 }
 
+static int32_t mask_signed(uint32_t value, int bits)
+{
+    uint32_t mask = (UINT64_C(1) << bits) - 1;
+    uint32_t sign_bit = UINT64_C(1) << (bits - 1);
+    return ((value & mask) ^ sign_bit) - sign_bit;
+}
+
 int main(void)
 {
 	/* Data from PSAS 2005-08-20 flight, satellite 13.  Parity already removed. */
@@ -106,7 +113,7 @@ int main(void)
 		.C_rc = (subframe_3[6] >> 8) & 0xFFFF,
 		.omega = ((subframe_3[6] & 0xFF) << 24) | subframe_3[7],
 		.OMEGADOT = subframe_3[8],
-		.IDOT = (subframe_3[9] >> 2) & 0x3FFF,
+		.IDOT = mask_signed(subframe_3[9] >> 2, 14),
 	};
 	for (uint32_t minute = 0; minute < 24*60; minute += 15) {
 		vec3 pos = gps_satellite_position(&ephemeris, 86400*6 + minute*60);
