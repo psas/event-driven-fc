@@ -112,7 +112,7 @@ int main(void)
 		.i_0 = ((subframe_3[4] & 0xFF) << 24) | subframe_3[5],
 		.C_rc = (subframe_3[6] >> 8) & 0xFFFF,
 		.omega = ((subframe_3[6] & 0xFF) << 24) | subframe_3[7],
-		.OMEGADOT = subframe_3[8],
+		.OMEGADOT = mask_signed(subframe_3[8], 24),
 		.IDOT = mask_signed(subframe_3[9] >> 2, 14),
 	};
 	for (uint32_t minute = 0; minute < 24*60; minute += 15) {
