@@ -52,16 +52,14 @@ static double solve_kepler(double M_k, double e)
 
 static vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */)
 {
-	double sqrt_A = ephemeris->sqrt_A;
-	double A = sqrt_A * sqrt_A;
-	double n_0 = sqrt_mu / (A * sqrt_A);
+	double A = ephemeris->sqrt_A * ephemeris->sqrt_A;
+	double n_0 = sqrt_mu / (A * ephemeris->sqrt_A);
 	double t_oe = ephemeris->t_oe * 16.0;
 	double t_k = t - t_oe;
 	double n = n_0 + ephemeris->delta_n * pi;
 	double M_k = ephemeris->M_0 * pi + n * t_k;
-	double e = ephemeris->e;
-	double E_k = solve_kepler(M_k, e);
-	double nu_k = atan2(sqrt(1 - e*e) * sin(E_k), cos(E_k) - e);
+	double E_k = solve_kepler(M_k, ephemeris->e);
+	double nu_k = atan2(sqrt(1 - ephemeris->e*ephemeris->e) * sin(E_k), cos(E_k) - ephemeris->e);
 	double PHI_k = nu_k + ephemeris->omega * pi;
 
 	double delta_u_k = ephemeris->C_us * sin(2 * PHI_k) + ephemeris->C_uc * cos(2 * PHI_k);
@@ -69,7 +67,7 @@ static vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /
 	double delta_i_k = ephemeris->C_is * sin(2 * PHI_k) + ephemeris->C_ic * cos(2 * PHI_k);
 
 	double u_k = PHI_k + delta_u_k;
-	double r_k = A * (1 - e * cos(E_k)) + delta_r_k;
+	double r_k = A * (1 - ephemeris->e * cos(E_k)) + delta_r_k;
 	double i_k = ephemeris->i_0 * pi + delta_i_k + ephemeris->IDOT * pi * t_k;
 
 	double x_k_prime = r_k * cos(u_k);
