@@ -47,7 +47,7 @@ static double solve_kepler(double M_k, double e)
 	double X = 0;
 	for (unsigned i = 0; i < 10; i++)
 		X = e * sin(M_k + X);
-	return X;
+	return M_k + X;
 }
 
 static vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */)
