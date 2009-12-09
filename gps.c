@@ -56,6 +56,10 @@ static vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /
 	double n_0 = sqrt_mu / (A * ephemeris->sqrt_A);
 	double t_oe = ephemeris->t_oe * 16.0;
 	double t_k = t - t_oe;
+	if (t_k > 302400)
+		t_k -= 604800;
+	else if (t_k < -302400)
+		t_k += 604800;
 	double n = n_0 + ephemeris->delta_n * pi;
 	double M_k = ephemeris->M_0 * pi + n * t_k;
 	double E_k = solve_kepler(M_k, ephemeris->e);
