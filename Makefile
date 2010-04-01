@@ -6,7 +6,7 @@ OPTS := -O3 -ffast-math $(call cc-option,-fwhole-program -combine)
 WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
 CFLAGS := -MD -std=gnu99 $(OPTS) $(WARNINGS)
 
-TARGETS = sim lv2log coordtest gps
+TARGETS = sim lv2log coordtest gpstest
 
 all: $(TARGETS)
 
@@ -33,10 +33,10 @@ COORDTEST_SOURCES = coord.c coordtest.c mat.c vec.c
 coordtest: $(COORDTEST_SOURCES)
 	$(CC) $(CFLAGS) $(COORDTEST_SOURCES) -lm -o $@
 
-GPS_SOURCES = gps.c
+GPSTEST_SOURCES = gpstest.c gps.c
 
-gps: $(GPS_SOURCES)
-	$(CC) $(CFLAGS) $(GPS_SOURCES) -lm -o $@
+gpstest: $(GPSTEST_SOURCES)
+	$(CC) $(CFLAGS) $(GPSTEST_SOURCES) -lm -o $@
 
 -include *.d
 

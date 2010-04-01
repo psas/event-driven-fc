@@ -6,29 +6,9 @@
 
 #include <math.h>
 #include <stdint.h>
-#include <stdio.h>
 
+#include "gps.h"
 #include "vec.h"
-
-struct ephemeris {
-	uint8_t IODE; /* Issue of data (ephemeris) */
-	double C_rs; /* meters */
-	double delta_n; /* semicircles */
-	double M_0; /* semicircles */
-	double C_uc; /* radians */
-	double e; /* effective range 0.03 */
-	double C_us; /* radians */
-	double sqrt_A; /* sqrt(meters) */
-	double t_oe; /* seconds; effective range 604,784 */
-	double C_ic; /* radians */
-	double OMEGA_0; /* semicircles */
-	double C_is; /* radians */
-	double i_0; /* semicircles */
-	double C_rc; /* meters */
-	double omega; /* semicircles */
-	double OMEGADOT; /* semicircles/second */
-	double IDOT; /* semicircles/second */
-};
 
 static const double mu = 3.986005e14; /* meters^3/seconds^2 */
 static const double sqrt_mu = 1.9964981843217388e7; /* meters^(3/2)/seconds */
@@ -50,7 +30,7 @@ static double solve_kepler(double M_k, double e)
 	return M_k + X;
 }
 
-static vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */)
+vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */)
 {
 	double A = ephemeris->sqrt_A * ephemeris->sqrt_A;
 	double n_0 = sqrt_mu / (A * ephemeris->sqrt_A);
@@ -93,7 +73,7 @@ static int32_t mask_signed(uint32_t value, int bits)
     return ((value & mask) ^ sign_bit) - sign_bit;
 }
 
-static void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe_2[], const uint32_t subframe_3[])
+void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe_2[], const uint32_t subframe_3[])
 {
 	*ephemeris = (struct ephemeris) {
 		.IODE = (subframe_2[2] >> 16) & 0xFF,
@@ -116,16 +96,3 @@ static void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe
 	};
 }
 
-int main(void)
-{
-	/* Data from PSAS 2005-08-20 flight, satellite 13.  Parity already removed. */
-	const uint32_t subframe_2[] = { 0, 0, 0xc40d92, 0x2b475f, 0x772e13, 0x0bee01, 0x63fdf3, 0x0d5ca1, 0x0d6475, 0x00007f };
-	const uint32_t subframe_3[] = { 0, 0, 0xfffb2e, 0xd811cd, 0xffe128, 0x4a5fe4, 0x21d82d, 0x42f0d9, 0xffa8f3, 0xc4198b };
-	struct ephemeris ephemeris;
-	parse_ephemeris(&ephemeris, subframe_2, subframe_3);
-	for (uint32_t minute = 0; minute < 24*60; minute += 15) {
-		vec3 pos = gps_satellite_position(&ephemeris, 86400*6 + minute*60);
-		printf("%f %f %f\n", pos.x, pos.y, pos.z);
-	}
-	return 0;
-}
