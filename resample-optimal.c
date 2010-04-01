@@ -10,7 +10,7 @@
 
 #include "particle.h"
 #include "resample.h"
-#include "ziggurat/random.h"
+#include "ziggurat/zrandom.h"
 
 int resample_optimal(double scale,
 		     int m, struct particle *particle,

@@ -9,7 +9,7 @@
 #include "pressure_sensor.h"
 #include "resample.h"
 #include "sensors.h"
-#include "ziggurat/random.h"
+#include "ziggurat/zrandom.h"
 
 /* Unless explicitly stated otherwise, all values use SI units: meters,
  * meters/second, meters/second^2, radians.

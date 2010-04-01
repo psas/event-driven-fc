@@ -10,7 +10,7 @@
 #include "pressure_sensor.h"
 #include "sensors.h"
 #include "sim-common.h"
-#include "ziggurat/random.h"
+#include "ziggurat/zrandom.h"
 
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
