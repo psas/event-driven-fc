@@ -116,7 +116,6 @@ static int32_t mask_signed(uint32_t value, int bits)
 void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe_2[], const uint32_t subframe_3[])
 {
 	*ephemeris = (struct ephemeris) {
-		.IODE = (subframe_2[0] >> 16) & 0xFF,
 		.C_rs = scale(mask_signed(subframe_2[0], 16), 5),
 		.delta_n = scale(mask_signed(subframe_2[1] >> 8, 16), 43),
 		.M_0 = scale(mask_signed((subframe_2[1] << 24) | subframe_2[2], 32), 31),

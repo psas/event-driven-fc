@@ -4,7 +4,6 @@
 #include "vec.h"
 
 struct ephemeris {
-	uint8_t IODE; /* Issue of data (ephemeris) */
 	double C_rs; /* meters */
 	double delta_n; /* semicircles */
 	double M_0; /* semicircles */
