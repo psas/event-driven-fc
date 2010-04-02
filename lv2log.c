@@ -5,10 +5,12 @@
 #include <arpa/inet.h>
 
 #include "interface.h"
+#include "gps.h"
 #include "sim-common.h"
 
 static bool processed_message = false;
 static uint32_t last_timestamp;
+static struct gps_navigation_buffer channels[32];
 
 static double to_seconds(uint32_t timestamp)
 {
@@ -59,6 +61,38 @@ static uint32_t read32le(const uint8_t *buf)
 	return (uint32_t) buf[3] << 24 | buf[2] << 16 | buf[1] << 8 | buf[0];
 }
 
+static void add_navigation_word(uint8_t prn, uint16_t offset, uint32_t word)
+{
+	if((word >> 30) == 1)
+	{
+		struct gps_navigation_buffer *buffer = &channels[prn - 1];
+		uint8_t old_IODE = buffer->IODE;
+		gps_add_navigation_word(buffer, offset % 10, word & 0xFFFFFF);
+		if(old_IODE != buffer->IODE)
+		{
+			printf("%02d", prn);
+			printf(" IODE=%02x", buffer->IODE);
+			printf(" C_rs=%+010.5f", buffer->ephemeris.C_rs);
+			printf(" delta_n=%+e", buffer->ephemeris.delta_n);
+			printf(" M_0=%+f", buffer->ephemeris.M_0);
+			printf(" C_uc=%+e", buffer->ephemeris.C_uc);
+			printf(" e=%f", buffer->ephemeris.e);
+			printf(" C_us=%+e", buffer->ephemeris.C_us);
+			printf(" sqrt_A=%f", buffer->ephemeris.sqrt_A);
+			printf(" t_oe=%-6.0f", buffer->ephemeris.t_oe);
+			printf(" C_ic=%+e", buffer->ephemeris.C_ic);
+			printf(" OMEGA_0=%+f", buffer->ephemeris.OMEGA_0);
+			printf(" C_is=%+e", buffer->ephemeris.C_is);
+			printf(" i_0=%+f", buffer->ephemeris.i_0);
+			printf(" C_rc=%+e", buffer->ephemeris.C_rc);
+			printf(" omega=%+f", buffer->ephemeris.omega);
+			printf(" OMEGADOT=%+e", buffer->ephemeris.OMEGADOT);
+			printf(" IDOT=%+e", buffer->ephemeris.IDOT);
+			printf("\n");
+		}
+	}
+}
+
 static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 {
 	if (gps_length < 10)
@@ -93,6 +127,20 @@ static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 		}};
 		gps_sensor(pos, vel);
 		processed_message = true;
+		break;
+	case 1102: ;
+		for (int i = 0; i < 12; ++i)
+		{
+			uint8_t *base = gps_buffer + (24 + 19 * i) * 2;
+			uint16_t prn = read16le(base + 3 * 2);
+			if (prn == 0 || prn > 32)
+				continue;
+			uint16_t offset = read16le(base);
+			uint32_t word1 = read32le(base + 15 * 2);
+			uint32_t word2 = read32le(base + 17 * 2);
+			add_navigation_word(prn, offset, word1);
+			add_navigation_word(prn, offset + 1, word2);
+		}
 		break;
 	}
 	return 10 + 2 * word_count;

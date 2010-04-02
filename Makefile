@@ -23,7 +23,7 @@ ziggurat/normal_tab.c:
 ziggurat/polynomial_tab.c:
 	make -C ziggurat polynomial_tab.c
 
-LV2LOG_SOURCES = lv2log.c sim-common.c $(FC_SOURCES)
+LV2LOG_SOURCES = lv2log.c gps.c sim-common.c $(FC_SOURCES)
 
 lv2log: $(LV2LOG_SOURCES)
 	$(CC) $(CFLAGS) $(LV2LOG_SOURCES) -lm -o $@

@@ -15,6 +15,46 @@ static const double sqrt_mu = 1.9964981843217388e7; /* meters^(3/2)/seconds */
 static const double OMEGADOT_e = 7.2921151467e-5; /* radians/second */
 static const double pi = 3.1415926535898; /* GPS value of pi */
 
+void gps_add_navigation_word(struct gps_navigation_buffer *buffer, uint32_t offset, uint32_t word)
+{
+	if(offset != buffer->next_offset && offset != 0)
+	{
+		/* not the offset we were looking for; start over */
+		buffer->next_offset = 0;
+		return;
+	}
+	buffer->next_offset = offset + 1;
+	if(offset == 0)
+	{
+		buffer->TLM = word;
+		return;
+	}
+	if(offset == 1)
+	{
+		buffer->HOW = word;
+		return;
+	}
+	int subframe = (buffer->HOW >> 2) & 7;
+	if(subframe != 2 && subframe != 3)
+	{
+		/* we don't care about other subframes yet */
+		buffer->next_offset = 0;
+		return;
+	}
+	(subframe == 2 ? buffer->subframe_2 : buffer->subframe_3)[offset - 2] = word;
+	if(offset < 9)
+		return;
+	/* got a complete subframe */
+	buffer->next_offset = 0;
+	uint8_t IODE2 = (buffer->subframe_2[0] >> 16) & 0xFF;
+	uint8_t IODE3 = (buffer->subframe_3[7] >> 16) & 0xFF;
+	if(IODE2 == IODE3 && IODE2 != buffer->IODE)
+	{
+		buffer->IODE = IODE2;
+		parse_ephemeris(&buffer->ephemeris, buffer->subframe_2, buffer->subframe_3);
+	}
+}
+
 static double scale(double x, int e)
 {
 	return x / (double) (INT64_C(1) << e);
