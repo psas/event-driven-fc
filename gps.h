@@ -34,6 +34,6 @@ struct gps_navigation_buffer {
 
 void gps_add_navigation_word(struct gps_navigation_buffer *buffer, uint32_t offset, uint32_t word);
 void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe_2[], const uint32_t subframe_3[]);
-vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */);
+void gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */, vec3 *pos, vec3 *vel);
 
 #endif /* GPS_H */

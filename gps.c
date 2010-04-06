@@ -70,7 +70,11 @@ static double solve_kepler(double M_k, double e)
 	return M_k + X;
 }
 
-vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */)
+/* Position computation from IS-GPS-200D, and Global Position System,
+ * Theory and Applications, volume 1. Velocity computation from Benjamin
+ * W. Remondi, "Computing satellite velocity using the broadcast
+ * ephemeris", GPS Solutions (2004) 8:181-183. */
+void gps_satellite_position(const struct ephemeris *ephemeris, double t /* seconds */, vec3 *pos, vec3 *vel)
 {
 	double A = ephemeris->sqrt_A * ephemeris->sqrt_A;
 	double n_0 = sqrt_mu / (A * ephemeris->sqrt_A);
@@ -81,8 +85,11 @@ vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* secon
 		t_k += 604800;
 	double n = n_0 + ephemeris->delta_n * pi;
 	double M_k = ephemeris->M_0 * pi + n * t_k;
+	double Mdot_k = n;
 	double E_k = solve_kepler(M_k, ephemeris->e);
+	double Edot_k = Mdot_k / (1 - ephemeris->e * cos(E_k));
 	double nu_k = atan2(sqrt(1 - ephemeris->e*ephemeris->e) * sin(E_k), cos(E_k) - ephemeris->e);
+	double nudot_k = sin(E_k) * Edot_k * (1 + ephemeris->e * cos(nu_k)) / (sin(nu_k) * (1 - ephemeris->e * cos(E_k)));
 	double PHI_k = nu_k + ephemeris->omega * pi;
 
 	double delta_u_k = ephemeris->C_us * sin(2 * PHI_k) + ephemeris->C_uc * cos(2 * PHI_k);
@@ -93,15 +100,30 @@ vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* secon
 	double r_k = A * (1 - ephemeris->e * cos(E_k)) + delta_r_k;
 	double i_k = ephemeris->i_0 * pi + delta_i_k + ephemeris->IDOT * pi * t_k;
 
+	double udot_k = nudot_k + 2 * (ephemeris->C_us * cos(2 * u_k) - ephemeris->C_uc * sin(2 * u_k)) * nudot_k;
+	double rdot_k = A * ephemeris->e * sin(E_k) * n / (1 - ephemeris->e * cos(E_k)) + 2 * (ephemeris->C_rs * cos(2 * u_k) - ephemeris->C_rc * sin(2 * u_k)) * nudot_k;
+	double idot_k = ephemeris->IDOT + (ephemeris->C_is * cos(2 * u_k) - ephemeris->C_ic * sin(2 * u_k)) * 2 * nudot_k;
+
 	double x_k_prime = r_k * cos(u_k);
 	double y_k_prime = r_k * sin(u_k);
 
-	double OMEGA_k = ephemeris->OMEGA_0 * pi + (ephemeris->OMEGADOT * pi - OMEGADOT_e) * t_k - OMEGADOT_e * ephemeris->t_oe;
+	double xdot_k_prime = rdot_k * cos(u_k) - y_k_prime * udot_k;
+	double ydot_k_prime = rdot_k * sin(u_k) + x_k_prime * udot_k;
 
-	return (vec3) {{
+	double OMEGA_k = ephemeris->OMEGA_0 * pi + (ephemeris->OMEGADOT * pi - OMEGADOT_e) * t_k - OMEGADOT_e * ephemeris->t_oe;
+	double OMEGADOT_k = ephemeris->OMEGADOT * pi - OMEGADOT_e;
+
+	*pos = (vec3) {{
 		.x = x_k_prime * cos(OMEGA_k) - y_k_prime * cos(i_k) * sin(OMEGA_k),
 		.y = x_k_prime * sin(OMEGA_k) + y_k_prime * cos(i_k) * cos(OMEGA_k),
 		.z = y_k_prime * sin(i_k),
+	}};
+	*vel = (vec3) {{
+		.x = (xdot_k_prime - y_k_prime * cos(i_k) * OMEGADOT_k) * cos(OMEGA_k) -
+		     (x_k_prime * OMEGADOT_k + ydot_k_prime * cos(i_k) - y_k_prime * sin(i_k) * idot_k) * sin(OMEGA_k),
+		.y = (xdot_k_prime - y_k_prime * cos(i_k) * OMEGADOT_k) * sin(OMEGA_k) +
+		     (x_k_prime * OMEGADOT_k + ydot_k_prime * cos(i_k) - y_k_prime * sin(i_k) * idot_k) * cos(OMEGA_k),
+		.z = ydot_k_prime * sin(i_k) + y_k_prime * cos(i_k) * idot_k,
 	}};
 }
 
@@ -133,4 +155,3 @@ void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe_2[], c
 		.IDOT = scale(mask_signed(subframe_3[7] >> 2, 14), 43),
 	};
 }
-

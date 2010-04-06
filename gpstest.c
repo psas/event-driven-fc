@@ -12,8 +12,9 @@ int main(void)
 	struct ephemeris ephemeris;
 	parse_ephemeris(&ephemeris, subframe_2, subframe_3);
 	for (uint32_t minute = 0; minute < 24*60; minute += 15) {
-		vec3 pos = gps_satellite_position(&ephemeris, 86400*6 + minute*60);
-		printf("%f %f %f\n", pos.x, pos.y, pos.z);
+		vec3 pos, vel;
+		gps_satellite_position(&ephemeris, 86400*6 + minute*60, &pos, &vel);
+		printf("%f %f %f %f %f %f\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
 	}
 	return 0;
 }
