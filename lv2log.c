@@ -150,7 +150,7 @@ static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 			uint32_t word2 = read32le(base + 17 * 2);
 			add_navigation_word(prn, offset, word1);
 			add_navigation_word(prn, offset + 1, word2);
-			if(channels[prn - 1].IODE)
+			if(channels[prn - 1].valid_ephemeris)
 			{
 				const double c = 2.99792458e8; /* speed of light, from IS-GPS-200D (WGS-84) */
 

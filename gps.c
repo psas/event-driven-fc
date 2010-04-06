@@ -52,6 +52,7 @@ void gps_add_navigation_word(struct gps_navigation_buffer *buffer, uint32_t offs
 	{
 		buffer->IODE = IODE2;
 		parse_ephemeris(&buffer->ephemeris, buffer->subframe_2, buffer->subframe_3);
+		buffer->valid_ephemeris = 1;
 	}
 }
 

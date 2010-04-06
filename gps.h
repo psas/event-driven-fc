@@ -24,6 +24,7 @@ struct ephemeris {
 
 struct gps_navigation_buffer {
 	uint8_t IODE;
+	uint8_t valid_ephemeris;
 	uint8_t next_offset;
 	uint32_t TLM;
 	uint32_t HOW;
