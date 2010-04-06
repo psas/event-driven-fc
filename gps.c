@@ -74,8 +74,7 @@ vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* secon
 {
 	double A = ephemeris->sqrt_A * ephemeris->sqrt_A;
 	double n_0 = sqrt_mu / (A * ephemeris->sqrt_A);
-	double t_oe = ephemeris->t_oe * 16.0;
-	double t_k = t - t_oe;
+	double t_k = t - ephemeris->t_oe;
 	if (t_k > 302400)
 		t_k -= 604800;
 	else if (t_k < -302400)
@@ -97,7 +96,7 @@ vec3 gps_satellite_position(const struct ephemeris *ephemeris, double t /* secon
 	double x_k_prime = r_k * cos(u_k);
 	double y_k_prime = r_k * sin(u_k);
 
-	double OMEGA_k = ephemeris->OMEGA_0 * pi + (ephemeris->OMEGADOT * pi - OMEGADOT_e) * t_k - OMEGADOT_e * t_oe;
+	double OMEGA_k = ephemeris->OMEGA_0 * pi + (ephemeris->OMEGADOT * pi - OMEGADOT_e) * t_k - OMEGADOT_e * ephemeris->t_oe;
 
 	return (vec3) {{
 		.x = x_k_prime * cos(OMEGA_k) - y_k_prime * cos(i_k) * sin(OMEGA_k),
