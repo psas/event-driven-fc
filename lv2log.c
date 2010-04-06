@@ -51,15 +51,16 @@ static uint16_t read16(const unsigned char *buf)
 	return (uint16_t) buf[0] << 8 | buf[1];
 }
 
-static uint16_t read16le(const uint8_t *buf)
-{
-	return (uint16_t) buf[1] << 8 | buf[0];
+#define readle(type,bits) static type read##bits##le(const uint8_t *buf) \
+{ \
+	type ret = 0; \
+	for(unsigned i = 0; i < bits / 8; ++i) \
+		ret |= (type) buf[i] << (i * 8); \
+	return ret; \
 }
 
-static uint32_t read32le(const uint8_t *buf)
-{
-	return (uint32_t) buf[3] << 24 | buf[2] << 16 | buf[1] << 8 | buf[0];
-}
+readle(uint16_t, 16)
+readle(uint32_t, 32)
 
 static void add_navigation_word(uint8_t prn, uint16_t offset, uint32_t word)
 {
