@@ -61,6 +61,7 @@ static uint16_t read16(const unsigned char *buf)
 
 readle(uint16_t, 16)
 readle(uint32_t, 32)
+readle(uint64_t, 48)
 
 static void add_navigation_word(uint8_t prn, uint16_t offset, uint32_t word)
 {
@@ -96,6 +97,8 @@ static void add_navigation_word(uint8_t prn, uint16_t offset, uint32_t word)
 
 static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 {
+	static vec3 lastpos;
+	static vec3 lastvel;
 	if (gps_length < 10)
 		return 0;
 	if (gps_buffer[0] != 0xFF || gps_buffer[1] != 0x81)
@@ -126,10 +129,16 @@ static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 			.y = (int32_t) read32le(gps_buffer + 34) / 100.0,
 			.z = (int32_t) read32le(gps_buffer + 38) / 100.0,
 		}};
+		lastpos = pos;
+		lastvel = vel;
+		printf("ECEF pos=(%.2f, %.2f, %.2f) vel=(%.2f, %.2f, %.2f)\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
 		gps_sensor(pos, vel);
 		processed_message = true;
 		break;
 	case 1102: ;
+		uint32_t gps_time_int = read32le(gps_buffer + 16);
+		int32_t gps_time_frac = read32le(gps_buffer + 20);
+		double gps_time = gps_time_int * 2.0 / 100.0 + gps_time_frac / 50.0 / (1 << 29);
 		for (int i = 0; i < 12; ++i)
 		{
 			uint8_t *base = gps_buffer + (24 + 19 * i) * 2;
@@ -141,6 +150,27 @@ static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 			uint32_t word2 = read32le(base + 17 * 2);
 			add_navigation_word(prn, offset, word1);
 			add_navigation_word(prn, offset + 1, word2);
+			if(channels[prn - 1].IODE)
+			{
+				const double c = 2.99792458e8; /* speed of light, from IS-GPS-200D (WGS-84) */
+
+				double code_phase = read48le(base + 5 * 2) / 50.0 / (UINT64_C(1) << 45);
+				double carrier_velocity = (int32_t) read32le(base + 11 * 2) / (double) (UINT64_C(1) << 45);
+				vec3 satpos, satvel;
+				gps_satellite_position(&channels[prn - 1].ephemeris, gps_time - code_phase, &satpos, &satvel);
+
+				/* from Global Position System, Theory and Applications, volume 1, chapter 9:
+				 * Axelrad, Brown. GPS Navigation Algorithms */
+				/* see also http://en.wikipedia.org/wiki/Relativistic_Doppler_effect */
+				vec3 range = vec_sub(satpos, lastpos);
+				vec3 line_of_sight = vec_scale(range, 1 / vec_abs(range));
+				double doppler = 1 / c * vec_dot(vec_sub(satvel, lastvel), line_of_sight);
+
+				printf("ECEF sat%02d pos=(%f, %f, %f) measured=%f expected=%f error=%f\n",
+					prn, satpos.x, satpos.y, satpos.z, code_phase * c, vec_abs(range), code_phase * c - vec_abs(range));
+				printf("ECEF sat%02d vel=(%f, %f, %f) measured=%g expected=%g error=%g\n",
+					prn, satvel.x, satvel.y, satvel.z, carrier_velocity, doppler, carrier_velocity - doppler);
+			}
 		}
 		break;
 	}
