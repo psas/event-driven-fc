@@ -17,6 +17,7 @@
 
 static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
 static const vec3 gyroscope_sd = {{ 1, 1, 1 }};
+static const vec3 magnetometer_sd = {{ 1, 1, 1 }};
 static const vec3 gps_pos_var = {{ 1, 1, 1 }};
 static const vec3 gps_vel_var = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
@@ -258,5 +259,18 @@ void pressure_sensor(unsigned pressure)
 		particle->s.pos.z += gaussian(z_pos_sd);
 		double local = pressure_measurement(&particle->s);
 		particle->weight *= quantized_gprob(pressure, local, pressure_sd, 0xfff);
+	}
+}
+
+void magnetometer_sensor(vec3_i mag_vec)
+{
+	struct particle *particle;
+	for_each_particle(particle)
+	{
+		vec3 local = magnetometer_measurement(&particle->s);
+		particle->weight *=
+			quantized_gprob(mag_vec.x, local.x, magnetometer_sd.x, 0xfff) *
+			quantized_gprob(mag_vec.y, local.y, magnetometer_sd.y, 0xfff) *
+			quantized_gprob(mag_vec.z, local.z, magnetometer_sd.z, 0xfff);
 	}
 }

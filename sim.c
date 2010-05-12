@@ -209,6 +209,8 @@ static void update_simulator(void)
 		gyroscope_sensor(quantize_vec(vec_noise(gyroscope_measurement(&rocket_state), gyroscope_sd), 0xfff));
 	if(t % 100000 == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state) + gaussian(pressure_sd), 0xfff));
+        if(t % 100000 == 25000)
+		magnetometer_sensor(quantize_vec(vec_noise(magnetometer_measurement(&rocket_state), gyroscope_sd), 0xfff)); 
 	if(t % 100000 == 50000)
 		gps_sensor(vec_noise(rocket_state.pos, gps_pos_sd),
 		           vec_noise(rocket_state.vel, gps_vel_sd));

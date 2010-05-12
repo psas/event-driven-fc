@@ -6,6 +6,7 @@
 #include "pressure_sensor.h"
 #include "sensors.h"
 #include "vec.h"
+#include "spherical_harmonics.h"
 
 #define G 9.80665
 
@@ -43,4 +44,17 @@ double pressure_measurement(struct rocket_state *state)
 	const double gain = 44.549779924087175 / 1000;
 	double rocket = altitude_to_pressure(ECEF_to_geodetic(state->pos).altitude);
 	return rocket * gain + bias;
+}
+
+vec3 magnetometer_measurement(struct rocket_state *state)
+{
+	const vec3 bias = {{ 0, 0, 0 }};
+	const vec3 gain = {{ 1, 1, 1 }};
+        vec3 mag = magnetic_field(ECEF_to_geodetic(state->pos));
+	vec3 mag_sensor = rocket_to_ECEF(state, mag);
+	return (vec3) {{
+		.x = mag_sensor.x * gain.x + bias.x,
+		.y = mag_sensor.y * gain.y + bias.y,
+		.z = mag_sensor.z * gain.z + bias.z,
+	}};
 }

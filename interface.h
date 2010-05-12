@@ -35,6 +35,7 @@ void arm(void);
 void launch(void);
 void accelerometer_sensor(accelerometer_i acc);
 void gyroscope_sensor(vec3_i rotvel);
+void magnetometer_sensor(vec3_i mag_vec);
 void gps_sensor(vec3 ecef_pos, vec3 ecef_vel);
 void pressure_sensor(unsigned pressure);
 
