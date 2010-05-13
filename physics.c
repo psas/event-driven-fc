@@ -25,3 +25,15 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 	rocket_state->vel = vec_add(rocket_state->vel, vec_scale(rocket_state->acc, delta_t));
 	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
 }
+
+
+vec3 numerical_integration(double t, vec3 y, vec3 (*f)(double, vec3), double delta_t){
+    vec3 m_k = f(t, y);
+    vec3 n_k = f(t + delta_t/2, vec_add(y, vec_scale(m_k, delta_t/2)));
+    vec3 q_k = f(t + delta_t/2, vec_add(y, vec_scale(n_k, delta_t/2)));
+    vec3 p_k = f(t + delta_t,   vec_add(y, vec_scale(q_k, delta_t)));
+
+    vec3 y_next = vec_add(y, vec_scale(vec_add(m_k, vec_add(vec_scale(n_k,2), vec_add(vec_scale(q_k,2), p_k))),delta_t/6));
+
+    return y_next;
+}
