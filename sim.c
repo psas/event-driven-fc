@@ -138,8 +138,10 @@ static vec3 expected_acceleration(struct rocket_state *rocket_state, microsecond
 	return vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
 }
 
-static vec3 f(double time, vec3 velocity){
+static vec3 f(double time, vec3 position, vec3 velocity){
     rocket_state.vel = velocity;
+    rocket_state.pos = position;
+    
     return expected_acceleration(&rocket_state, (microseconds)time);
 }
 
@@ -258,6 +260,7 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 	mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
 	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
+       // printf("Y:%f %f %f\n", rocket_state->pos.x,rocket_state->pos.y,rocket_state->pos.z);
 }
 
 int main(int argc, const char *const argv[])
