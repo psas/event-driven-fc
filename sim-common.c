@@ -47,7 +47,8 @@ void trace_state(const char *source, struct rocket_state *state, const char *fmt
 		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc",
 		       current_timestamp(), source,
 		       ECEF_to_geodetic(state->pos).altitude,
-		       vec_abs(state->vel), vec_abs(state->acc));
+		       //vec_abs(state->vel), vec_abs(state->acc));
+                       state->vel.z, state->acc.z);
 		vprintf(fmt, args);
 		va_end(args);
 	}
