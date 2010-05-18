@@ -131,18 +131,11 @@ static vec3 thrust_force(struct rocket_state *rocket_state, microseconds time)
 	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, scale * ENGINE_THRUST }});
 }
 
-static vec3 expected_acceleration(struct rocket_state *rocket_state, microseconds time)
+static vec3 expected_acceleration(double time, struct rocket_state *rocket_state)
 {
 	/* TODO: add coefficient of normal force at the center of pressure */
-	vec3 force = vec_add(thrust_force(rocket_state, time), drag_force(rocket_state));
+	vec3 force = vec_add(thrust_force(rocket_state, (microseconds) time), drag_force(rocket_state));
 	return vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
-}
-
-static vec3 f(double time, vec3 position, vec3 velocity){
-    rocket_state.vel = velocity;
-    rocket_state.pos = position;
-    
-    return expected_acceleration(&rocket_state, (microseconds)time);
 }
 
 static unsigned quantize(double value, unsigned mask)
@@ -239,7 +232,7 @@ static void update_simulator(void)
 	}
 	if(engine_burning)
 		mass -= FUEL_MASS * DELTA_T_SECONDS / (ENGINE_BURN_TIME / 1e6);
-	rocket_state.acc = expected_acceleration(&rocket_state, t);
+	rocket_state.acc = expected_acceleration((double)t, &rocket_state);
 	geodetic pos = ECEF_to_geodetic(rocket_state.pos);
 	if(pos.altitude <= initial_geodetic.altitude)
 	{
@@ -277,7 +270,7 @@ int main(int argc, const char *const argv[])
 	while(last_reported_state() != STATE_RECOVERY)
 	{
 		t += DELTA_T;
-		update_rocket_state(&rocket_state, DELTA_T_SECONDS, f, (double)t);
+		update_rocket_state(&rocket_state, DELTA_T_SECONDS, expected_acceleration, (double)t);
 		update_simulator();
 		tick(DELTA_T_SECONDS);
 	}
