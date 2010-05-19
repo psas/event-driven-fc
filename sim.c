@@ -32,7 +32,7 @@ static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
 static const double ROCKET_CROSS_SECTION = 0.015327901242699;
 static const double AIR_DENSITY = 1.225;
 static const double R = 287.05; //gas constant
-static const double TEMPERATURE = 297; //about room temp in kelvins
+static const double TEMPERATURE = 297; //about room temp in kelvins, this can be calced from preasure_sensor
 
 static microseconds t;
 static double mass;
