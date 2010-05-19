@@ -31,6 +31,8 @@ static const double DROGUE_CHUTE_CROSS_SECTION = 0.836954282802814;
 static const double ROCKET_DRAG_COEFFICIENT = 0.36559;
 static const double ROCKET_CROSS_SECTION = 0.015327901242699;
 static const double AIR_DENSITY = 1.225;
+static const double R = 287.05; //gas constant
+static const double TEMPERATURE = 297; //about room temp in kelvins
 
 static microseconds t;
 static double mass;
@@ -94,6 +96,12 @@ void main_chute(bool go)
 	}
 }
 
+static double air_density(vec3 rocket_pos)
+{
+    geodetic pos = ECEF_to_geodetic(rocket_pos);
+    return altitude_to_pressure(pos.altitude)/(R*TEMPERATURE);
+}
+
 static vec3 drag_force(struct rocket_state *rocket_state)
 {
 	/* TODO: fix drag for rocket orientation */
@@ -113,7 +121,7 @@ static vec3 drag_force(struct rocket_state *rocket_state)
 		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
 		cross_section = ROCKET_CROSS_SECTION;
 	}
-	return vec_scale(rocket_state->vel, -0.5 * AIR_DENSITY
+	return vec_scale(rocket_state->vel, -0.5 * air_density(rocket_state->pos)
 	                 * vec_abs(rocket_state->vel)
 	                 * cross_section * drag_coefficient);
 }
@@ -264,6 +272,9 @@ int main(int argc, const char *const argv[])
 		.longitude = 0,
 		.altitude = 0,
 	};
+
+        /*TODO: get init to set things like temp, humidity, time of day etc*/
+
 	init_rocket_state(&rocket_state);
 	init(initial_geodetic);
 
