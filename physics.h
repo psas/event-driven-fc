@@ -29,7 +29,7 @@ vec3 ECEF_to_rocket(struct rocket_state *rocket_state, vec3 v) ATTR_WARN_UNUSED_
 vec3 rocket_to_ECEF(struct rocket_state *rocket_state, vec3 v) ATTR_WARN_UNUSED_RESULT;
 vec3 gravity_acceleration(struct rocket_state *rocket_state) ATTR_WARN_UNUSED_RESULT;
 void update_rocket_state_basic(struct rocket_state *rocket_state, double delta_t);
-void update_rocket_state(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, vec3), double t);
-vec3 numerical_integration(double t, vec3 y, vec3 (*f)(double, vec3), double delta_t);
+void update_rocket_state(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, struct rocket_state*), double t);
+//vec3 numerical_integration(double t, vec3 y, vec3 (*f)(double, vec3, vec3), double delta_t);
 
 #endif
