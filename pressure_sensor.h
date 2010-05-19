@@ -19,5 +19,6 @@
 
 double altitude_to_pressure(double) ATTR_WARN_UNUSED_RESULT;
 double pressure_to_altitude(double) ATTR_WARN_UNUSED_RESULT;
+double altitude_to_temperature(double altitude)ATTR_WARN_UNUSED_RESULT;
 
 #endif

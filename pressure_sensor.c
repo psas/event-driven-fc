@@ -28,6 +28,22 @@ int base_altitude[NUMBER_OF_LAYERS] =
      {0, 11000, 20000, 32000, 47000, 51000, 71000};
 
 
+double altitude_to_temperature(double altitude){
+    /*should take base temperature as arg and should be incorporated into
+      altitude_to_pressure */
+    int layer_number, delta_z;
+    double base_temperature = LAYER0_BASE_TEMPERATURE;
+
+    for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; layer_number++) {
+      delta_z = base_altitude[layer_number + 1] - base_altitude[layer_number];
+      base_temperature += delta_z * lapse_rate[layer_number];
+    }
+    delta_z = altitude - base_altitude[layer_number];
+    return base_temperature + delta_z*lapse_rate[layer_number];
+
+}
+
+
 /* outputs atmospheric pressure associated with the given altitude. altitudes
    are measured with respect to the mean sea level */
 double altitude_to_pressure(double altitude) {
