@@ -173,7 +173,7 @@ void tick(double delta_t)
 	trace_state("bpf", &particles[max_belief].s, " weight %6.2f\n", total_weight);
 
 	for_each_particle(particle)
-		update_rocket_state(&particle->s, delta_t); 
+		update_rocket_state(&particle->s, delta_t);
 }
 
 void arm(void)

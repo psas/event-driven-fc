@@ -12,7 +12,6 @@
 #include "sim-common.h"
 #include "ziggurat/zrandom.h"
 
-
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
@@ -95,10 +94,9 @@ void main_chute(bool go)
 	}
 }
 
-
 static void ground_clip(vec3 *v, mat3 rot)
 {
-        const vec3 zero = {{ 0, 0, 0 }};
+	const vec3 zero = {{ 0, 0, 0 }};
 	vec3 ltp = ECEF_to_LTP(zero, rot, *v);
 	if(ltp.z < 0)
 	{
@@ -106,7 +104,6 @@ static void ground_clip(vec3 *v, mat3 rot)
 		*v = LTP_to_ECEF(zero, rot, ltp);
 	}
 }
-
 
 static vec3 drag_force(const struct rocket_state *rocket_state)
 {
@@ -147,15 +144,15 @@ static vec3 thrust_force(const struct rocket_state *rocket_state, microseconds t
 
 static vec3 expected_acceleration(double time, const struct rocket_state *rocket_state)
 {
-    /* TODO: add coefficient of normal force at the center of pressure */
+	/* TODO: add coefficient of normal force at the center of pressure */
 	vec3 force = vec_add(thrust_force(rocket_state, (microseconds) time), drag_force(rocket_state));
-        vec3 accel = vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
-        
-        geodetic pos = ECEF_to_geodetic(rocket_state->pos);
-        if(pos.altitude <= initial_geodetic.altitude){
-            mat3 rot = make_LTP_rotation(pos);
-            ground_clip(&accel, rot);
-        }
+	vec3 accel = vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
+
+	geodetic pos = ECEF_to_geodetic(rocket_state->pos);
+	if(pos.altitude <= initial_geodetic.altitude){
+		mat3 rot = make_LTP_rotation(pos);
+		ground_clip(&accel, rot);
+	}
 	return accel;
 }
 
@@ -207,8 +204,6 @@ static vec3 vec_noise(vec3 value, vec3 sd)
 	}};
 }
 
-
-
 static void update_simulator(void)
 {
 	trace_state("sim", &rocket_state, ", %4.1f kg, %c%c%c\n",
@@ -222,13 +217,12 @@ static void update_simulator(void)
 		gyroscope_sensor(quantize_vec(vec_noise(gyroscope_measurement(&rocket_state), gyroscope_sd), 0xfff));
 	if(t % 100000 == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state) + gaussian(pressure_sd), 0xfff));
-        if(t % 100000 == 25000)
+	if(t % 100000 == 25000)
 		magnetometer_sensor(quantize_vec(vec_noise(magnetometer_measurement(&rocket_state), gyroscope_sd), 0xfff)); 
 	if(t % 100000 == 50000)
 		gps_sensor(vec_noise(rocket_state.pos, gps_pos_sd),
 		           vec_noise(rocket_state.vel, gps_vel_sd));
 
-        
 	if(!engine_ignited && t >= LAUNCH_TIME && last_reported_state() == STATE_ARMED)
 	{
 		trace_printf("Sending launch signal\n");
@@ -248,8 +242,7 @@ static void update_simulator(void)
 	if(engine_burning)
 		mass -= FUEL_MASS * DELTA_T_SECONDS / (ENGINE_BURN_TIME / 1e6);
 
-
-        geodetic pos = ECEF_to_geodetic(rocket_state.pos);
+	geodetic pos = ECEF_to_geodetic(rocket_state.pos);
 	if(pos.altitude <= initial_geodetic.altitude)
 	{
 		if(pos.altitude < initial_geodetic.altitude)
@@ -267,30 +260,27 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 	/* TODO: accept an initial orientation for leaving the tower */
 	mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
-        rocket_state->vel.x = 0;
-        rocket_state->vel.y = 0;
-        rocket_state->vel.z = 0;
 	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
-        rocket_state->acc = expected_acceleration(0, rocket_state);
+	rocket_state->acc = expected_acceleration(0, rocket_state);
 }
 
 int main(int argc, const char *const argv[])
 {
-        parse_trace_args(argc, argv);
+	parse_trace_args(argc, argv);
 	initial_geodetic = (geodetic) {
 		.latitude = M_PI_2,
 		.longitude = 0,
 		.altitude = 0,
 	};
 
-        init_atmosphere(LAYER0_BASE_TEMPERATURE, LAYER0_BASE_PRESSURE);
+	init_atmosphere(LAYER0_BASE_TEMPERATURE, LAYER0_BASE_PRESSURE);
 	init_rocket_state(&rocket_state);
 	init(initial_geodetic);
-        
+
 	while(last_reported_state() != STATE_RECOVERY)
-	{		
+	{
 		update_rocket_state_sim(&rocket_state, DELTA_T_SECONDS, expected_acceleration, (double)t);
-                t += DELTA_T;
+		t += DELTA_T;
 		update_simulator();
 		tick(DELTA_T_SECONDS);
 	}

@@ -1,7 +1,5 @@
 #include "physics.h"
 #include "coord.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 vec3 ECEF_to_rocket(struct rocket_state *rocket_state, vec3 v)
 {
@@ -50,10 +48,9 @@ static void numerical_integration(double t, double delta_t, vec3 (*f)(double, co
 void update_rocket_state_sim(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, const struct rocket_state *), double t)
 {
 	numerical_integration(t, delta_t, f, rocket_state);
-        rocket_state->acc = f(t + delta_t, rocket_state);
+	rocket_state->acc = f(t + delta_t, rocket_state);
 	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
 }
-
 
 void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
@@ -63,6 +60,3 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 	rocket_state->vel = vec_add(rocket_state->vel, vec_scale(rocket_state->acc, delta_t));
 	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
 }
-
-
-

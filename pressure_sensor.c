@@ -75,7 +75,8 @@ double altitude_to_air_density(double altitude)
 double altitude_to_temperature(double altitude){
     int layer_number, delta_z;
 
-    for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; ++layer_number);
+    for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; ++layer_number)
+        /* empty */;
 
     delta_z = altitude - base_altitude[layer_number];
     return base_temperature[layer_number] + delta_z*lapse_rate[layer_number];
@@ -97,7 +98,8 @@ double altitude_to_pressure(double altitude) {
       return 0;
 
    /*find correct layer_number*/
-   for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; ++layer_number);
+   for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; ++layer_number)
+       /* empty */;
 
    /* calculate the pressure at the inputted altitude */
    delta_z = altitude - base_altitude[layer_number];

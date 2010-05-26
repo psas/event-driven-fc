@@ -8,7 +8,7 @@
 #include "interface.h"
 #include "sim-common.h"
 
-static bool trace, trace_physics, trace_ltp, trace_vis;
+static bool trace, trace_physics, trace_ltp;
 static enum state fc_state;
 geodetic initial_geodetic;
 
@@ -23,8 +23,6 @@ void parse_trace_args(int argc, const char *const argv[])
 			trace = trace_physics = true;
 		else if(!strcmp(argv[i], "--trace-ltp"))
 			trace_ltp = true;
-                else if(!strcmp(argv[i], "--trace-vis"))
-                    trace_vis = true;
 	}
 }
 
@@ -49,8 +47,7 @@ void trace_state(const char *source, struct rocket_state *state, const char *fmt
 		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc",
 		       current_timestamp(), source,
 		       ECEF_to_geodetic(state->pos).altitude,
-		       //vec_abs(state->vel), vec_abs(state->acc));
-                       state->vel.z, state->acc.z);
+		       vec_abs(state->vel), vec_abs(state->acc));
 		vprintf(fmt, args);
 		va_end(args);
 	}
