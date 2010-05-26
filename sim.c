@@ -12,6 +12,7 @@
 #include "sim-common.h"
 #include "ziggurat/zrandom.h"
 
+
 static const microseconds DELTA_T = 1000;
 #define DELTA_T_SECONDS (DELTA_T / 1000000.0)
 
@@ -275,7 +276,7 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 
 int main(int argc, const char *const argv[])
 {
-	parse_trace_args(argc, argv);
+        parse_trace_args(argc, argv);
 	initial_geodetic = (geodetic) {
 		.latitude = M_PI_2,
 		.longitude = 0,
@@ -288,7 +289,7 @@ int main(int argc, const char *const argv[])
         
 	while(last_reported_state() != STATE_RECOVERY)
 	{		
-		update_rocket_state(&rocket_state, DELTA_T_SECONDS, expected_acceleration, (double)t);
+		update_rocket_state_sim(&rocket_state, DELTA_T_SECONDS, expected_acceleration, (double)t);
                 t += DELTA_T;
 		update_simulator();
 		tick(DELTA_T_SECONDS);

@@ -5,7 +5,7 @@ cc-option = $(call try-run,$(CC) $(1) -S -xc /dev/null -o /dev/null,$(1),$(2))
 OPTS := -O3 -ffast-math 
 #$(call cc-option,-fwhole-program -combine)
 WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
-CFLAGS := -MD -std=gnu99 $(OPTS) $(WARNINGS) -fno-strict-aliasing
+CFLAGS := -g -MD -std=gnu99 $(OPTS) $(WARNINGS) -fno-strict-aliasing
 
 TARGETS = sim lv2log coordtest gpstest
 

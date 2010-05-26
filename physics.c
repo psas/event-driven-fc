@@ -47,7 +47,7 @@ static void numerical_integration(double t, double delta_t, vec3 (*f)(double, co
     rocket_state->pos = vec_add(org_pos,  vec_scale(vec_add(m_k,  vec_add(vec_scale(n_k,2),  vec_add(vec_scale(q_k,2),  p_k))), delta_t/6));
 }
 
-void update_rocket_state(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, const struct rocket_state *), double t)
+void update_rocket_state_sim(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, const struct rocket_state *), double t)
 {
 	numerical_integration(t, delta_t, f, rocket_state);
         rocket_state->acc = f(t + delta_t, rocket_state);
@@ -55,7 +55,7 @@ void update_rocket_state(struct rocket_state *rocket_state, double delta_t, vec3
 }
 
 
-void update_rocket_state_basic(struct rocket_state *rocket_state, double delta_t)
+void update_rocket_state(struct rocket_state *rocket_state, double delta_t)
 {
 	/* FIXME: this should use a better numerical integration technique,
 	 * such as Runge-Kutta or leapfrog integration. */
