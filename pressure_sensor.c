@@ -20,36 +20,72 @@
 
 #include <math.h>
 #include "pressure_sensor.h"
-
 /* lapse rate and base altitude for each layer in the atmosphere */
-double lapse_rate[NUMBER_OF_LAYERS] = 
+static const double lapse_rate[NUMBER_OF_LAYERS] =
      {-0.0065, 0.0, 0.001, 0.0028, 0.0, -0.0028, -0.002};
-int base_altitude[NUMBER_OF_LAYERS] = 
+static const double base_altitude[NUMBER_OF_LAYERS] =
      {0, 11000, 20000, 32000, 47000, 51000, 71000};
 
 
-double altitude_to_temperature(double altitude){
-    /*should take base temperature as arg and should be incorporated into
-      altitude_to_pressure */
-    int layer_number, delta_z;
-    double base_temperature = LAYER0_BASE_TEMPERATURE;
+/* Base temperature and pressure for each layer in the atmosphere. The values
+ * given are the default, calculated from LAYER0_BASE_PRESSURE and
+ * LAYER0_BASE_TEMPERATURE. The values are recalculated in a call to
+ * init_atmosphere()
+ */
+static double base_pressure[NUMBER_OF_LAYERS] = {1.013250e+05, 2.263206e+04,
+                        5.474885e+03, 8.680176e+02, 1.109061e+02, 6.693875e+01};
+static double base_temperature[NUMBER_OF_LAYERS]= {2.881500e+02, 2.166500e+02,
+                        2.166500e+02, 2.286500e+02, 2.706500e+02, 2.706500e+02};
 
-    for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; layer_number++) {
+void init_atmosphere(double ground_temperature, double ground_pressure){
+    //TODO: accept altitude where measurements were taken, also humidity
+    int layer_number;
+    double delta_z;
+
+    base_temperature[0] = ground_temperature;
+    base_pressure[0] = ground_pressure;
+    double base;
+    double exponent;
+    /* calculate the base temperature and pressure for all atmospheric layers
+     */
+    for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1; ++layer_number) {
       delta_z = base_altitude[layer_number + 1] - base_altitude[layer_number];
-      base_temperature += delta_z * lapse_rate[layer_number];
-    }
+      if (lapse_rate[layer_number] == 0.0) {
+         exponent = GRAVITATIONAL_ACCELERATION * delta_z
+              / AIR_GAS_CONSTANT / base_temperature[layer_number];
+         base_pressure[layer_number+1] = base_pressure[layer_number] * exp(exponent);
+      }
+      else {
+         base = (lapse_rate[layer_number] * delta_z / base_temperature[layer_number]) + 1.0;
+         exponent = GRAVITATIONAL_ACCELERATION /
+              (AIR_GAS_CONSTANT * lapse_rate[layer_number]);
+         base_pressure[layer_number+1] = base_pressure[layer_number] * pow(base, exponent);
+      }
+      base_temperature[layer_number+1]= base_temperature[layer_number] + delta_z * lapse_rate[layer_number];
+   }   
+}
+
+
+double altitude_to_air_density(double altitude)
+{ //TODO: Humidity
+    return altitude_to_pressure(altitude)/(AIR_GAS_CONSTANT*altitude_to_temperature(altitude));
+}
+
+
+double altitude_to_temperature(double altitude){
+    int layer_number, delta_z;
+
+    for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; ++layer_number);
+
     delta_z = altitude - base_altitude[layer_number];
-    return base_temperature + delta_z*lapse_rate[layer_number];
+    return base_temperature[layer_number] + delta_z*lapse_rate[layer_number];
 
 }
 
 
 /* outputs atmospheric pressure associated with the given altitude. altitudes
-   are measured with respect to the mean sea level */
+   are geopotential measured with respect to the mean sea level */
 double altitude_to_pressure(double altitude) {
- 
-   double base_temperature = LAYER0_BASE_TEMPERATURE;
-   double base_pressure = LAYER0_BASE_PRESSURE;
 
    double pressure;
    double base; /* base for function to determine pressure */
@@ -60,38 +96,22 @@ double altitude_to_pressure(double altitude) {
    if (altitude > MAXIMUM_ALTITUDE) /* FIX ME: use sensor data to improve model */
       return 0;
 
-   /* calculate the base temperature and pressure for the atmospheric layer
-      associated with the inputted altitude */
-   for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; layer_number++) {
-      delta_z = base_altitude[layer_number + 1] - base_altitude[layer_number];
-      if (lapse_rate[layer_number] == 0.0) {
-         exponent = GRAVITATIONAL_ACCELERATION * delta_z 
-              / AIR_GAS_CONSTANT / base_temperature;
-         base_pressure *= exp(exponent);
-      }
-      else {
-         base = (lapse_rate[layer_number] * delta_z / base_temperature) + 1.0;
-         exponent = GRAVITATIONAL_ACCELERATION / 
-              (AIR_GAS_CONSTANT * lapse_rate[layer_number]);
-         base_pressure *= pow(base, exponent);
-      }
-      base_temperature += delta_z * lapse_rate[layer_number];
-   }
+   /*find correct layer_number*/
+   for(layer_number = 0; layer_number < NUMBER_OF_LAYERS - 1 && altitude > base_altitude[layer_number + 1]; ++layer_number);
 
    /* calculate the pressure at the inputted altitude */
    delta_z = altitude - base_altitude[layer_number];
    if (lapse_rate[layer_number] == 0.0) {
       exponent = GRAVITATIONAL_ACCELERATION * delta_z 
-           / AIR_GAS_CONSTANT / base_temperature;
-      pressure = base_pressure * exp(exponent);
+           / AIR_GAS_CONSTANT / base_temperature[layer_number];
+      pressure = base_pressure[layer_number] * exp(exponent);
    }
    else {
-      base = (lapse_rate[layer_number] * delta_z / base_temperature) + 1.0;
+      base = (lapse_rate[layer_number] * delta_z / base_temperature[layer_number]) + 1.0;
       exponent = GRAVITATIONAL_ACCELERATION /
            (AIR_GAS_CONSTANT * lapse_rate[layer_number]);
-      pressure = base_pressure * pow(base, exponent);
+      pressure = base_pressure[layer_number] * pow(base, exponent);
    } 
-
    return pressure;
 }
 
@@ -99,7 +119,6 @@ double altitude_to_pressure(double altitude) {
 /* outputs the altitude associated with the given pressure. the altitude
    returned is measured with respect to the mean sea level */
 double pressure_to_altitude(double pressure) {
-
    double next_base_temperature = LAYER0_BASE_TEMPERATURE;
    double next_base_pressure = LAYER0_BASE_PRESSURE;
 

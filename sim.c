@@ -94,13 +94,20 @@ void main_chute(bool go)
 	}
 }
 
-static double air_density(vec3 rocket_pos)
+
+static void ground_clip(vec3 *v, mat3 rot)
 {
-    geodetic pos = ECEF_to_geodetic(rocket_pos);
-    return altitude_to_pressure(pos.altitude)/(AIR_GAS_CONSTANT*altitude_to_temperature(pos.altitude));
+        const vec3 zero = {{ 0, 0, 0 }};
+	vec3 ltp = ECEF_to_LTP(zero, rot, *v);
+	if(ltp.z < 0)
+	{
+		ltp.z = 0;
+		*v = LTP_to_ECEF(zero, rot, ltp);
+	}
 }
 
-static vec3 drag_force(struct rocket_state *rocket_state)
+
+static vec3 drag_force(const struct rocket_state *rocket_state)
 {
 	/* TODO: fix drag for rocket orientation */
 	double drag_coefficient, cross_section;
@@ -119,12 +126,12 @@ static vec3 drag_force(struct rocket_state *rocket_state)
 		drag_coefficient = ROCKET_DRAG_COEFFICIENT;
 		cross_section = ROCKET_CROSS_SECTION;
 	}
-	return vec_scale(rocket_state->vel, -0.5 * air_density(rocket_state->pos)
+	return vec_scale(rocket_state->vel, -0.5 * altitude_to_air_density((ECEF_to_geodetic(rocket_state->pos)).altitude)
 	                 * vec_abs(rocket_state->vel)
 	                 * cross_section * drag_coefficient);
 }
 
-static vec3 thrust_force(struct rocket_state *rocket_state, microseconds time)
+static vec3 thrust_force(const struct rocket_state *rocket_state, microseconds time)
 {
 	if(!engine_burning)
 	        return (vec3){{ 0, 0, 0 }};
@@ -137,11 +144,18 @@ static vec3 thrust_force(struct rocket_state *rocket_state, microseconds time)
 	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, scale * ENGINE_THRUST }});
 }
 
-static vec3 expected_acceleration(double time, struct rocket_state *rocket_state)
+static vec3 expected_acceleration(double time, const struct rocket_state *rocket_state)
 {
-	/* TODO: add coefficient of normal force at the center of pressure */
+    /* TODO: add coefficient of normal force at the center of pressure */
 	vec3 force = vec_add(thrust_force(rocket_state, (microseconds) time), drag_force(rocket_state));
-	return vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
+        vec3 accel = vec_add(gravity_acceleration(rocket_state), vec_scale(force, 1/mass));
+        
+        geodetic pos = ECEF_to_geodetic(rocket_state->pos);
+        if(pos.altitude <= initial_geodetic.altitude){
+            mat3 rot = make_LTP_rotation(pos);
+            ground_clip(&accel, rot);
+        }
+	return accel;
 }
 
 static unsigned quantize(double value, unsigned mask)
@@ -192,16 +206,7 @@ static vec3 vec_noise(vec3 value, vec3 sd)
 	}};
 }
 
-static void ground_clip(vec3 *v, mat3 rot)
-{
-	const vec3 zero = {{ 0, 0, 0 }};
-	vec3 ltp = ECEF_to_LTP(zero, rot, *v);
-	if(ltp.z < 0)
-	{
-		ltp.z = 0;
-		*v = LTP_to_ECEF(zero, rot, ltp);
-	}
-}
+
 
 static void update_simulator(void)
 {
@@ -210,6 +215,7 @@ static void update_simulator(void)
 	       engine_burning        ? 'B' : '-',
 	       drogue_chute_deployed ? 'D' : '-',
 	       main_chute_deployed   ? 'M' : '-');
+
 	accelerometer_sensor(quantize_accelerometer(add_accelerometer_noise(accelerometer_measurement(&rocket_state)), 0xfff));
 	if(t % 2000 == 0)
 		gyroscope_sensor(quantize_vec(vec_noise(gyroscope_measurement(&rocket_state), gyroscope_sd), 0xfff));
@@ -220,6 +226,8 @@ static void update_simulator(void)
 	if(t % 100000 == 50000)
 		gps_sensor(vec_noise(rocket_state.pos, gps_pos_sd),
 		           vec_noise(rocket_state.vel, gps_vel_sd));
+
+        
 	if(!engine_ignited && t >= LAUNCH_TIME && last_reported_state() == STATE_ARMED)
 	{
 		trace_printf("Sending launch signal\n");
@@ -238,8 +246,9 @@ static void update_simulator(void)
 	}
 	if(engine_burning)
 		mass -= FUEL_MASS * DELTA_T_SECONDS / (ENGINE_BURN_TIME / 1e6);
-	rocket_state.acc = expected_acceleration((double)t, &rocket_state);
-	geodetic pos = ECEF_to_geodetic(rocket_state.pos);
+
+
+        geodetic pos = ECEF_to_geodetic(rocket_state.pos);
 	if(pos.altitude <= initial_geodetic.altitude)
 	{
 		if(pos.altitude < initial_geodetic.altitude)
@@ -249,7 +258,6 @@ static void update_simulator(void)
 		}
 		mat3 rot = make_LTP_rotation(pos);
 		ground_clip(&rocket_state.vel, rot);
-		ground_clip(&rocket_state.acc, rot);
 	}
 }
 
@@ -258,8 +266,11 @@ static void init_rocket_state(struct rocket_state *rocket_state)
 	/* TODO: accept an initial orientation for leaving the tower */
 	mass = ROCKET_EMPTY_MASS + FUEL_MASS;
 	rocket_state->pos = geodetic_to_ECEF(initial_geodetic);
+        rocket_state->vel.x = 0;
+        rocket_state->vel.y = 0;
+        rocket_state->vel.z = 0;
 	rocket_state->rotpos = make_LTP_rotation(initial_geodetic);
-       // printf("Y:%f %f %f\n", rocket_state->pos.x,rocket_state->pos.y,rocket_state->pos.z);
+        rocket_state->acc = expected_acceleration(0, rocket_state);
 }
 
 int main(int argc, const char *const argv[])
@@ -271,15 +282,14 @@ int main(int argc, const char *const argv[])
 		.altitude = 0,
 	};
 
-        /*TODO: get init to set things like temp, humidity, time of day etc*/
-
+        init_atmosphere(LAYER0_BASE_TEMPERATURE, LAYER0_BASE_PRESSURE);
 	init_rocket_state(&rocket_state);
 	init(initial_geodetic);
-
+        
 	while(last_reported_state() != STATE_RECOVERY)
-	{
-		t += DELTA_T;
+	{		
 		update_rocket_state(&rocket_state, DELTA_T_SECONDS, expected_acceleration, (double)t);
+                t += DELTA_T;
 		update_simulator();
 		tick(DELTA_T_SECONDS);
 	}

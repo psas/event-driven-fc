@@ -8,7 +8,7 @@
 #include "interface.h"
 #include "sim-common.h"
 
-static bool trace, trace_physics, trace_ltp;
+static bool trace, trace_physics, trace_ltp, trace_vis;
 static enum state fc_state;
 geodetic initial_geodetic;
 
@@ -23,6 +23,8 @@ void parse_trace_args(int argc, const char *const argv[])
 			trace = trace_physics = true;
 		else if(!strcmp(argv[i], "--trace-ltp"))
 			trace_ltp = true;
+                else if(!strcmp(argv[i], "--trace-vis"))
+                    trace_vis = true;
 	}
 }
 

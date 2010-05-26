@@ -8,24 +8,24 @@ vec3 ECEF_to_rocket(struct rocket_state *rocket_state, vec3 v)
 	return mat3_vec3_mul(rocket_state->rotpos, v);
 }
 
-vec3 rocket_to_ECEF(struct rocket_state *rocket_state, vec3 v)
+vec3 rocket_to_ECEF(const struct rocket_state *rocket_state, vec3 v)
 {
 	return mat3_vec3_mul(mat3_transpose(rocket_state->rotpos), v);
 }
 
-vec3 gravity_acceleration(struct rocket_state *rocket_state)
+vec3 gravity_acceleration(const struct rocket_state *rocket_state)
 {
 	/* TODO: apply gravity at the approximate center of mass */
 	return vec_scale(rocket_state->pos, -EARTH_GRAVITY / vec_abs(rocket_state->pos));
 }
 
 
-static void numerical_integration(double t, double delta_t, vec3 (*f)(double, struct rocket_state *), struct rocket_state *rocket_state){
+static void numerical_integration(double t, double delta_t, vec3 (*f)(double, const struct rocket_state *), struct rocket_state *rocket_state){
 
     vec3 org_pos = rocket_state->pos;
     vec3 org_vel = rocket_state->vel;
     
-    vec3 dm_k= f(t, rocket_state);
+    vec3 dm_k= rocket_state->acc;
     vec3 m_k = org_vel;
     
     rocket_state->pos = vec_add(org_pos, vec_scale(m_k, delta_t/2));
@@ -47,10 +47,10 @@ static void numerical_integration(double t, double delta_t, vec3 (*f)(double, st
     rocket_state->pos = vec_add(org_pos,  vec_scale(vec_add(m_k,  vec_add(vec_scale(n_k,2),  vec_add(vec_scale(q_k,2),  p_k))), delta_t/6));
 }
 
-//update_rocket_state given rocket state & dt updates all values, inc accel?
-void update_rocket_state(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, struct rocket_state *), double t)
+void update_rocket_state(struct rocket_state *rocket_state, double delta_t, vec3 (*f)(double, const struct rocket_state *), double t)
 {
 	numerical_integration(t, delta_t, f, rocket_state);
+        rocket_state->acc = f(t + delta_t, rocket_state);
 	rocket_state->rotpos = mat3_mul(rocket_state->rotpos, axis_angle_to_mat3(vec_scale(rocket_state->rotvel, delta_t)));
 }
 
