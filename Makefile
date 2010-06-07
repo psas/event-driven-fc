@@ -11,7 +11,7 @@ TARGETS = sim lv2log coordtest gpstest
 all: $(TARGETS)
 
 ZIGGURAT_SOURCES = ziggurat/isaac.c ziggurat/random.c ziggurat/normal.c ziggurat/normal_tab.c ziggurat/polynomial.c ziggurat/polynomial_tab.c
-FC_SOURCES = flight-computer.c physics.c pressure_sensor.c sensors.c resample-optimal.c coord.c mat.c vec.c spherical_harmonics.c $(ZIGGURAT_SOURCES)
+FC_SOURCES = flight-computer.c physics.c pressure_sensor.c sensors.c resample.c coord.c mat.c vec.c spherical_harmonics.c $(ZIGGURAT_SOURCES)
 ZSIM_SOURCES = sim.c sim-common.c $(FC_SOURCES)
 
 sim: $(ZSIM_SOURCES) Makefile data_WMM.h
