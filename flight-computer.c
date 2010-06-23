@@ -22,9 +22,9 @@ static const vec3 gps_pos_var = {{ 1, 1, 1 }};
 static const vec3 gps_vel_var = {{ 1, 1, 1 }};
 static const double pressure_var = 1;
 
-static const double z_acc_sd = 1;
-static const double z_vel_sd = 1;
-static const double z_pos_sd = 1;
+static const vec3 acc_sd_rel = {{ 0.01, 0.01, 1 }};
+static const vec3 vel_sd = {{ 0.2, 0.2, 0.2 }};
+static const vec3 pos_sd = {{ 0.2, 0.2, 0.2 }};
 
 #define PARTICLE_COUNT 1000
 static struct particle particle_arrays[2][PARTICLE_COUNT];
@@ -228,7 +228,12 @@ void accelerometer_sensor(accelerometer_i acc)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		particle->s.acc.z += gaussian(z_acc_sd);
+		vec3 acc_noise = {{
+			gaussian(acc_sd_rel.x),
+			gaussian(acc_sd_rel.y),
+			gaussian(acc_sd_rel.z),
+		}};
+		particle->s.acc = vec_add(particle->s.acc, rocket_to_ECEF(&particle->s, acc_noise));
 		accelerometer_d local = accelerometer_measurement(&particle->s);
 		particle->weight +=
 			log_gprob(acc.x - local.x, accelerometer_var.x) +
@@ -256,8 +261,12 @@ void gps_sensor(vec3 ecef_pos, vec3 ecef_vel)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		particle->s.pos.z += gaussian(z_pos_sd);
-		particle->s.vel.z += gaussian(z_vel_sd);
+		particle->s.pos.x += gaussian(pos_sd.x);
+		particle->s.pos.y += gaussian(pos_sd.y);
+		particle->s.pos.z += gaussian(pos_sd.z);
+		particle->s.vel.x += gaussian(vel_sd.x);
+		particle->s.vel.y += gaussian(vel_sd.y);
+		particle->s.vel.z += gaussian(vel_sd.z);
 		particle->weight +=
 			log_gprob(ecef_pos.x - particle->s.pos.x, gps_pos_var.x) +
 			log_gprob(ecef_pos.y - particle->s.pos.y, gps_pos_var.y) +
@@ -273,7 +282,9 @@ void pressure_sensor(unsigned pressure)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		particle->s.pos.z += gaussian(z_pos_sd);
+		particle->s.pos.x += gaussian(pos_sd.x);
+		particle->s.pos.y += gaussian(pos_sd.y);
+		particle->s.pos.z += gaussian(pos_sd.z);
 		double local = pressure_measurement(&particle->s);
 		particle->weight += log_gprob(pressure - local, pressure_var);
 	}
