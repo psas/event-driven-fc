@@ -19,6 +19,7 @@ static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
 
 static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
 static const vec3 gyroscope_sd = {{ 1, 1, 1 }};
+static const vec3 magnetometer_sd = {{ 1, 1, 1 }};
 static const vec3 gps_pos_sd = {{ 1, 1, 1 }};
 static const vec3 gps_vel_sd = {{ 1, 1, 1 }};
 static const double pressure_sd = 1;
@@ -218,7 +219,7 @@ static void update_simulator(void)
 	if(t % 100000 == 0)
 		pressure_sensor(quantize(pressure_measurement(&rocket_state) + gaussian(pressure_sd), 0xfff));
 	if(t % 100000 == 25000)
-		magnetometer_sensor(quantize_vec(vec_noise(magnetometer_measurement(&rocket_state), gyroscope_sd), 0xfff)); 
+		magnetometer_sensor(quantize_vec(vec_noise(magnetometer_measurement(&rocket_state), magnetometer_sd), 0xfff));
 	if(t % 100000 == 50000)
 		gps_sensor(vec_noise(rocket_state.pos, gps_pos_sd),
 		           vec_noise(rocket_state.vel, gps_vel_sd));
