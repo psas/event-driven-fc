@@ -1,9 +1,14 @@
+/* Copyright © 2010 Portland State Aerospace Society
+ * See version control history for detailed authorship information.
+ *
+ * This program is licensed under the GPL version 2 or later.  Please see the
+ * file COPYING in the source distribution of this software for license terms.
+ */
 /* Orbital equations using GPS ephemeris
  * Implemented based on "Global Positioning System: Theory and Application",
  * Chapter 4, "GPS Navigation Data", J.J. Spilker Jr.,
  * and based on IS-GPS-200D.
  */
-
 #include <math.h>
 #include <stdint.h>
 

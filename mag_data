@@ -1,4 +1,10 @@
 #!/usr/bin/awk -f
+#
+# Copyright © 2010 Portland State Aerospace Society
+# See version control history for detailed authorship information.
+#
+# This program is licensed under the GPL version 2 or later.  Please see the
+# file COPYING in the source distribution of this software for license terms.
 
 #set FS (field seperator) to ' ' and '-'?
 #TODO: place max_degree at beginning, get Year (define year at beginning of file?), verify integrity of data file.

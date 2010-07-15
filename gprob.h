@@ -1,10 +1,8 @@
-/*
- * Copyright (C) 2007 Bart Massey
- * ALL RIGHTS RESERVED
+/* Copyright © 2010 Portland State Aerospace Society, Bart Massey
+ * See version control history for detailed authorship information.
  *
- * This program is licensed under the GPL version 2 or GPL
- * version 3 or later.  Please see the file COPYING in the
- * source distribution of this software for license terms.
+ * This program is licensed under the GPL version 2 or later.  Please see the
+ * file COPYING in the source distribution of this software for license terms.
  */
 #ifndef GPROB_H
 #define GPROB_H

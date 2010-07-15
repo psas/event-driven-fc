@@ -1,3 +1,9 @@
+/* Copyright © 2010 Portland State Aerospace Society
+ * See version control history for detailed authorship information.
+ *
+ * This program is licensed under the GPL version 2 or later.  Please see the
+ * file COPYING in the source distribution of this software for license terms.
+ */
 #ifndef SENSORS_H
 #define SENSORS_H
 

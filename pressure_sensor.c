@@ -1,7 +1,10 @@
-/*
- * Pressure Sensor Model, version 1.1
+/* Copyright © 2010 Portland State Aerospace Society
+ * See version control history for detailed authorship information.
  *
- * written by Holly Grimes
+ * This program is licensed under the GPL version 2 or later.  Please see the
+ * file COPYING in the source distribution of this software for license terms.
+ */
+/* Originally written by Holly Grimes.
  *
  * Uses the International Standard Atmosphere as described in
  *   "A Quick Derivation relating altitude to air pressure" (version 1.03)
