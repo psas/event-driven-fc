@@ -11,21 +11,21 @@
 
 struct ephemeris {
 	double C_rs; /* meters */
-	double delta_n; /* semicircles */
-	double M_0; /* semicircles */
+	double delta_n; /* radians */
+	double M_0; /* radians */
 	double C_uc; /* radians */
 	double e; /* effective range 0.03 */
 	double C_us; /* radians */
 	double sqrt_A; /* sqrt(meters) */
 	double t_oe; /* seconds; effective range 604,784 */
 	double C_ic; /* radians */
-	double OMEGA_0; /* semicircles */
+	double OMEGA_0; /* radians */
 	double C_is; /* radians */
-	double i_0; /* semicircles */
+	double i_0; /* radians */
 	double C_rc; /* meters */
-	double omega; /* semicircles */
-	double OMEGADOT; /* semicircles/second */
-	double IDOT; /* semicircles/second */
+	double omega; /* radians */
+	double OMEGADOT; /* radians/second */
+	double IDOT; /* radians/second */
 };
 
 struct gps_navigation_buffer {
