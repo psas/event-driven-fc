@@ -10,6 +10,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+#include "binary.h"
 #include "interface.h"
 #include "gps.h"
 #include "sim-common.h"
@@ -51,23 +52,6 @@ void main_chute(bool go)
 	else
 		trace_printf("FC stopped deploying main chute\n");
 }
-
-static uint16_t read16(const unsigned char *buf)
-{
-	return (uint16_t) buf[0] << 8 | buf[1];
-}
-
-#define readle(type,bits) static type read##bits##le(const uint8_t *buf) \
-{ \
-	type ret = 0; \
-	for(unsigned i = 0; i < bits / 8; ++i) \
-		ret |= (type) buf[i] << (i * 8); \
-	return ret; \
-}
-
-readle(uint16_t, 16)
-readle(uint32_t, 32)
-readle(uint64_t, 48)
 
 static void add_navigation_word(uint8_t prn, uint16_t offset, uint32_t word)
 {
@@ -229,15 +213,15 @@ int main(int argc, const char *const argv[])
 			break;
 		case /* IMU_ACCEL_DATA */ 0x1B88:
 			accelerometer_sensor((accelerometer_i) {
-				.x = read16(msg.data + 0),
-				.y = read16(msg.data + 2),
-				.z = read16(msg.data + 4),
-				.q = read16(msg.data + 6),
+				.x = read16be(msg.data + 0),
+				.y = read16be(msg.data + 2),
+				.z = read16be(msg.data + 4),
+				.q = read16be(msg.data + 6),
 			});
 			processed_message = true;
 			break;
 		case /* PRESS_REPORT_DATA */ 0x6322:
-			pressure_sensor(read16(msg.data));
+			pressure_sensor(read16be(msg.data));
 			processed_message = true;
 			break;
 		case /* REC_SET_PYRO */ 0x0802:
