@@ -61,11 +61,6 @@ void gps_add_navigation_word(struct gps_navigation_buffer *buffer, uint32_t offs
 	}
 }
 
-static double scale(double x, int e)
-{
-	return x / (double) (INT64_C(1) << e);
-}
-
 static double solve_kepler(double M_k, double e)
 {
 	/* 10 iterations bounds the error by (0.03**11)/0.97.
@@ -143,21 +138,21 @@ static int32_t mask_signed(uint32_t value, int bits)
 void parse_ephemeris(struct ephemeris *ephemeris, const uint32_t subframe_2[], const uint32_t subframe_3[])
 {
 	*ephemeris = (struct ephemeris) {
-		.C_rs = scale(mask_signed(subframe_2[0], 16), 5),
-		.delta_n = scale(mask_signed(subframe_2[1] >> 8, 16), 43),
-		.M_0 = scale(mask_signed((subframe_2[1] << 24) | subframe_2[2], 32), 31),
-		.C_uc = scale(mask_signed(subframe_2[3] >> 8, 16), 29),
-		.e = scale(((subframe_2[3] & 0xFF) << 24) | subframe_2[4], 33),
-		.C_us = scale(mask_signed(subframe_2[5] >> 8, 16), 29),
-		.sqrt_A = scale(((subframe_2[5] & 0xFF) << 24) | subframe_2[6], 19),
+		.C_rs = ldexp(mask_signed(subframe_2[0], 16), -5),
+		.delta_n = ldexp(mask_signed(subframe_2[1] >> 8, 16), -43),
+		.M_0 = ldexp(mask_signed((subframe_2[1] << 24) | subframe_2[2], 32), -31),
+		.C_uc = ldexp(mask_signed(subframe_2[3] >> 8, 16), -29),
+		.e = ldexp(((subframe_2[3] & 0xFF) << 24) | subframe_2[4], -33),
+		.C_us = ldexp(mask_signed(subframe_2[5] >> 8, 16), -29),
+		.sqrt_A = ldexp(((subframe_2[5] & 0xFF) << 24) | subframe_2[6], -19),
 		.t_oe = ((subframe_2[7] >> 8) & 0xFFFF) * 16.0,
-		.C_ic = scale(mask_signed(subframe_3[0] >> 8, 16), 29),
-		.OMEGA_0 = scale(mask_signed((subframe_3[0] << 24) | subframe_3[1], 32), 31),
-		.C_is = scale(mask_signed(subframe_3[2] >> 8, 16), 29),
-		.i_0 = scale(mask_signed((subframe_3[2] << 24) | subframe_3[3], 32), 31),
-		.C_rc = scale(mask_signed(subframe_3[4] >> 8, 16), 5),
-		.omega = scale(mask_signed((subframe_3[4] << 24) | subframe_3[5], 32), 31),
-		.OMEGADOT = scale(mask_signed(subframe_3[6], 24), 43),
-		.IDOT = scale(mask_signed(subframe_3[7] >> 2, 14), 43),
+		.C_ic = ldexp(mask_signed(subframe_3[0] >> 8, 16), -29),
+		.OMEGA_0 = ldexp(mask_signed((subframe_3[0] << 24) | subframe_3[1], 32), -31),
+		.C_is = ldexp(mask_signed(subframe_3[2] >> 8, 16), -29),
+		.i_0 = ldexp(mask_signed((subframe_3[2] << 24) | subframe_3[3], 32), -31),
+		.C_rc = ldexp(mask_signed(subframe_3[4] >> 8, 16), -5),
+		.omega = ldexp(mask_signed((subframe_3[4] << 24) | subframe_3[5], 32), -31),
+		.OMEGADOT = ldexp(mask_signed(subframe_3[6], 24), -43),
+		.IDOT = ldexp(mask_signed(subframe_3[7] >> 2, 14), -43),
 	};
 }
