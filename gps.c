@@ -103,7 +103,7 @@ void gps_satellite_position(const struct ephemeris *ephemeris, double t /* secon
 
 	double udot_k = nudot_k + 2 * (ephemeris->C_us * cos(2 * u_k) - ephemeris->C_uc * sin(2 * u_k)) * nudot_k;
 	double rdot_k = A * ephemeris->e * sin(E_k) * n / (1 - ephemeris->e * cos(E_k)) + 2 * (ephemeris->C_rs * cos(2 * u_k) - ephemeris->C_rc * sin(2 * u_k)) * nudot_k;
-	double idot_k = ephemeris->IDOT + (ephemeris->C_is * cos(2 * u_k) - ephemeris->C_ic * sin(2 * u_k)) * 2 * nudot_k;
+	double idot_k = ephemeris->IDOT * pi + (ephemeris->C_is * cos(2 * u_k) - ephemeris->C_ic * sin(2 * u_k)) * 2 * nudot_k;
 
 	double x_k_prime = r_k * cos(u_k);
 	double y_k_prime = r_k * sin(u_k);
