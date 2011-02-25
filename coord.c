@@ -34,11 +34,11 @@ vec3 geodetic_to_ECEF(geodetic geodetic)
 	double sinlat = sin(geodetic.latitude);
 	double coslong = cos(geodetic.longitude);
 	double sinlong = sin(geodetic.longitude);
-	return (vec3){{
+	return (vec3) {
 		.x = (geodetic.altitude + Nlat) * coslat * coslong,
 		.y = (geodetic.altitude + Nlat) * coslat * sinlong,
 		.z = (geodetic.altitude + (1 - WGS84_ESQ) * Nlat) * sinlat,
-	}};
+	};
 }
 
 mat3 make_LTP_rotation(geodetic geodetic)

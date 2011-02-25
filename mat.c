@@ -59,12 +59,13 @@ mat3 mat3_mul(mat3 left, mat3 right)
 
 vec3 mat3_vec3_mul(mat3 left, vec3 right)
 {
-	vec3 tmp = { };
+	union vec_array right_array = { right };
+	union vec_array tmp = { };
 	int i, k;
 	for(i = 0; i < 3; ++i)
 		for(k = 0; k < 3; ++k)
-			tmp.component[i] += left.component[i][k] * right.component[k];
-	return tmp;
+			tmp.component[i] += left.component[i][k] * right_array.component[k];
+	return tmp.vec;
 }
 
 mat3 mat3_transpose(mat3 m)
