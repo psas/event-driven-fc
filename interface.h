@@ -35,7 +35,7 @@ typedef struct vec3_i {
 } vec3_i;
 
 /* Implemented by the flight computer */
-void init(geodetic initial_geodetic);
+void init(geodetic initial_geodetic_in, mat3 initial_rotation_in);
 void tick(double delta_t);
 void arm(void);
 void launch(void);

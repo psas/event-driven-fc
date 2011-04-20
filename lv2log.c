@@ -182,7 +182,7 @@ int main(int argc, const char *const argv[])
 		.longitude = -120.65137954,
 		.altitude = 1373.46,
 	};
-	init(initial_geodetic);
+	init(initial_geodetic, make_LTP_rotation(initial_geodetic));
 
 	struct canmsg_t msg;
 	uint8_t gps_buffer[4096];

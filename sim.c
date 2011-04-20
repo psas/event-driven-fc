@@ -282,7 +282,7 @@ int main(int argc, const char *const argv[])
 
 	init_atmosphere(LAYER0_BASE_TEMPERATURE, LAYER0_BASE_PRESSURE);
 	init_rocket_state(&rocket_state);
-	init(initial_geodetic);
+	init(initial_geodetic, rocket_state.rotpos);
 
 	while(last_reported_state() != STATE_RECOVERY)
 	{

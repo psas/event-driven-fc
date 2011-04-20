@@ -56,12 +56,12 @@ static void change_state(enum state new_state)
 	report_state(state);
 }
 
-void init(geodetic initial_geodetic_in)
+void init(geodetic initial_geodetic_in, mat3 initial_rotation_in)
 {
 	struct particle *particle;
 	initial_geodetic = initial_geodetic_in;
 	initial_ecef = geodetic_to_ECEF(initial_geodetic);
-	initial_rotation = make_LTP_rotation(initial_geodetic);
+	initial_rotation = initial_rotation_in;
 	for_each_particle(particle)
 	{
 		particle->weight = -log(PARTICLE_COUNT);
