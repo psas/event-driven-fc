@@ -50,9 +50,10 @@ void trace_state(const char *source, struct rocket_state *state, const char *fmt
 	if(trace_physics)
 	{
 		va_start(args, fmt);
-		printf("%9.3f: %s %8.2f alt, %8.2f vel, %8.2f acc",
+		geodetic geodetic = ECEF_to_geodetic(state->pos);
+		printf("%9.3f: %s %2.6f° lat, %3.6f° long, %8.2f alt, %8.2f vel, %8.2f acc",
 		       current_timestamp(), source,
-		       ECEF_to_geodetic(state->pos).altitude,
+		       180 * geodetic.latitude / M_PI, 180 * geodetic.longitude / M_PI, geodetic.altitude,
 		       vec_abs(state->vel), vec_abs(state->acc));
 		vprintf(fmt, args);
 		va_end(args);
