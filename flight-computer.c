@@ -22,15 +22,15 @@
  */
 
 static const accelerometer_d accelerometer_var = { 1, 1, 1, 1 };
-static const vec3 gyroscope_var = {{ 1, 1, 1 }};
-static const vec3 magnetometer_var = {{ 1, 1, 1 }};
-static const vec3 gps_pos_var = {{ 1, 1, 1 }};
-static const vec3 gps_vel_var = {{ 1, 1, 1 }};
+static const vec3 gyroscope_var = { 1, 1, 1 };
+static const vec3 magnetometer_var = { 1, 1, 1 };
+static const vec3 gps_pos_var = { 1, 1, 1 };
+static const vec3 gps_vel_var = { 1, 1, 1 };
 static const double pressure_var = 1;
 
-static const vec3 acc_sd_rel = {{ 0.01, 0.01, 1 }};
-static const vec3 vel_sd = {{ 0.2, 0.2, 0.2 }};
-static const vec3 pos_sd = {{ 0.2, 0.2, 0.2 }};
+static const vec3 acc_sd_rel = { 0.01, 0.01, 1 };
+static const vec3 vel_sd = { 0.2, 0.2, 0.2 };
+static const vec3 pos_sd = { 0.2, 0.2, 0.2 };
 
 #define PARTICLE_COUNT 1000
 static struct particle particle_arrays[2][PARTICLE_COUNT];
@@ -193,7 +193,8 @@ void tick(double delta_t)
 		particles = particle_arrays[which_particles];
 	}
 
-	struct rocket_state centroid = {{}, {}, {}, {}, {}};
+	vec3 zero = { 0, 0, 0 };
+	struct rocket_state centroid = { zero, zero, zero, {}, zero };
 	for_each_particle(particle)
 	{
 		centroid.pos = vec_add(centroid.pos, vec_scale(particle->s.pos, exp(particle->weight)));
@@ -234,11 +235,11 @@ void accelerometer_sensor(accelerometer_i acc)
 	struct particle *particle;
 	for_each_particle(particle)
 	{
-		vec3 acc_noise = {{
+		vec3 acc_noise = {
 			gaussian(acc_sd_rel.x),
 			gaussian(acc_sd_rel.y),
 			gaussian(acc_sd_rel.z),
-		}};
+		};
 		particle->s.acc = vec_add(particle->s.acc, rocket_to_ECEF(&particle->s, acc_noise));
 		accelerometer_d local = accelerometer_measurement(&particle->s);
 		particle->weight +=

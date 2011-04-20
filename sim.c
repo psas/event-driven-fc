@@ -24,10 +24,10 @@ static const microseconds DELTA_T = 1000;
 static const microseconds LAUNCH_TIME = 1000000; /* One-second countdown */
 
 static const accelerometer_d accelerometer_sd = { 1, 1, 1, 1 };
-static const vec3 gyroscope_sd = {{ 1, 1, 1 }};
-static const vec3 magnetometer_sd = {{ 1, 1, 1 }};
-static const vec3 gps_pos_sd = {{ 1, 1, 1 }};
-static const vec3 gps_vel_sd = {{ 1, 1, 1 }};
+static const vec3 gyroscope_sd = { 1, 1, 1 };
+static const vec3 magnetometer_sd = { 1, 1, 1 };
+static const vec3 gps_pos_sd = { 1, 1, 1 };
+static const vec3 gps_vel_sd = { 1, 1, 1 };
 static const double pressure_sd = 1;
 
 /* Drag constants */
@@ -103,7 +103,7 @@ void main_chute(bool go)
 
 static void ground_clip(vec3 *v, mat3 rot)
 {
-	const vec3 zero = {{ 0, 0, 0 }};
+	const vec3 zero = { 0, 0, 0 };
 	vec3 ltp = ECEF_to_LTP(zero, rot, *v);
 	if(ltp.z < 0)
 	{
@@ -139,14 +139,14 @@ static vec3 drag_force(const struct rocket_state *rocket_state)
 static vec3 thrust_force(const struct rocket_state *rocket_state, microseconds time)
 {
 	if(!engine_burning)
-	        return (vec3){{ 0, 0, 0 }};
+	        return (vec3) { 0, 0, 0 };
 	const microseconds ENGINE_RAMP_TIME = 200000;
 	double scale = 1.0;
 	if(time - engine_ignition_time < ENGINE_RAMP_TIME)
 		scale = (double) (time - engine_ignition_time) / ENGINE_RAMP_TIME;
 	else if(time - engine_ignition_time > ENGINE_BURN_TIME - ENGINE_RAMP_TIME)
 		scale = (double) (engine_ignition_time + ENGINE_BURN_TIME - time) / ENGINE_RAMP_TIME;
-	return rocket_to_ECEF(rocket_state, (vec3){{ 0, 0, scale * ENGINE_THRUST }});
+	return rocket_to_ECEF(rocket_state, (vec3) { 0, 0, scale * ENGINE_THRUST });
 }
 
 static vec3 expected_acceleration(double time, const struct rocket_state *rocket_state)
@@ -204,11 +204,11 @@ static accelerometer_d add_accelerometer_noise(accelerometer_d value)
 
 static vec3 vec_noise(vec3 value, vec3 sd)
 {
-	return (vec3) {{
+	return (vec3) {
 		.x = value.x + gaussian(sd.x),
 		.y = value.y + gaussian(sd.y),
 		.z = value.z + gaussian(sd.z),
-	}};
+	};
 }
 
 static void update_simulator(void)

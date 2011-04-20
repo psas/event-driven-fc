@@ -90,7 +90,7 @@ vec3 spherical_harmonic_expansion_mag(const struct spherical_harmonic_coefficien
     double cos_lon_arr[degree];
     double sin_lon_arr[degree];
     double sqrt_val1;
-    vec3 vector   = {{0,0,coef[0][0].g}};//degree 0
+    vec3 vector   = {0,0,coef[0][0].g};//degree 0
     cos_lon_arr[0] = 1; //cos(0)
     sin_lon_arr[0] = 0; //sin(0)
 
@@ -160,7 +160,7 @@ vec3 spherical_harmonic_epansion_grav(const struct spherical_harmonic_coefficien
     double a_over_r =  6378137/coord.radius; //thats radius in m
     double aoverr_const = 1;//(a_over_r);//\*(a_over_r);//pow(a/radius_km,2); //find proper name in MIT pdf.
     double leg, leg_n1, leg_m1 = 0, leg_m2;
-    vec3 vector   = {{0,0,0}};  //why double braces?
+    vec3 vector   = {0,0,0};
     vector.radius = coef[0][0].g; //degree 0
     cos_n_lon = 1; //cos(0)
     sin_n_lon = 0; //sin(0)

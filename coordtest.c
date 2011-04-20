@@ -15,9 +15,10 @@ static const double DOUBLE_ERROR_BOUND = 0.000001;
 
 static bool vec3_similar(const vec3 expected, const vec3 actual)
 {
+	union vec_array e = { expected }, a = { actual };
 	int i;
 	for(i = 0; i < 3; ++i)
-		if(fabs(expected.component[i] - actual.component[i]) > DOUBLE_ERROR_BOUND)
+		if(fabs(e.component[i] - a.component[i]) > DOUBLE_ERROR_BOUND)
 			return false;
 	return true;
 }
@@ -55,11 +56,11 @@ int main(void)
 		.longitude = -2.0478571,
 		.altitude = 251.702,
 	};
-	const vec3 ecef_ref = {{
+	const vec3 ecef_ref = {
 		.x = -2430601.795708,
 		.y = -4702442.736094,
 		.z =  3546587.336483,
-	}};
+	};
 	const mat3 rotation_ref = { .component = {
 		{  0.88834836, -0.45917011,  0.00000000 },
 		{  0.25676467,  0.49675810,  0.82903757 },
@@ -100,7 +101,7 @@ int main(void)
 
 	for(i = -10; i <= 10; i += 10)
 	{
-		v = (vec3) {{ 1, 0, WGS84_B + i }};
+		v = (vec3) { 1, 0, WGS84_B + i };
 		for(v.x = 1; v.x > 0; v.x /= 10)
 		{
 			g = ECEF_to_geodetic(v);

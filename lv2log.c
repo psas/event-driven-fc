@@ -109,16 +109,16 @@ static size_t consume_gps(uint8_t gps_buffer[], size_t gps_length)
 	switch (read16le(gps_buffer + 2))
 	{
 	case 1009: ;
-		vec3 pos = {{
+		vec3 pos = {
 			.x = (int32_t) read32le(gps_buffer + 18) / 100.0,
 			.y = (int32_t) read32le(gps_buffer + 22) / 100.0,
 			.z = (int32_t) read32le(gps_buffer + 26) / 100.0,
-		}};
-		vec3 vel = {{
+		};
+		vec3 vel = {
 			.x = (int32_t) read32le(gps_buffer + 30) / 100.0,
 			.y = (int32_t) read32le(gps_buffer + 34) / 100.0,
 			.z = (int32_t) read32le(gps_buffer + 38) / 100.0,
-		}};
+		};
 		lastpos = pos;
 		lastvel = vel;
 		printf("ECEF pos=(%.2f, %.2f, %.2f) vel=(%.2f, %.2f, %.2f)\n", pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);

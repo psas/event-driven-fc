@@ -114,18 +114,18 @@ void gps_satellite_position(const struct ephemeris *ephemeris, double t /* secon
 	double OMEGA_k = ephemeris->OMEGA_0 + (ephemeris->OMEGADOT - OMEGADOT_e) * t_k - OMEGADOT_e * ephemeris->t_oe;
 	double OMEGADOT_k = ephemeris->OMEGADOT - OMEGADOT_e;
 
-	*pos = (vec3) {{
+	*pos = (vec3) {
 		.x = x_k_prime * cos(OMEGA_k) - y_k_prime * cos(i_k) * sin(OMEGA_k),
 		.y = x_k_prime * sin(OMEGA_k) + y_k_prime * cos(i_k) * cos(OMEGA_k),
 		.z = y_k_prime * sin(i_k),
-	}};
-	*vel = (vec3) {{
+	};
+	*vel = (vec3) {
 		.x = (xdot_k_prime - y_k_prime * cos(i_k) * OMEGADOT_k) * cos(OMEGA_k) -
 		     (x_k_prime * OMEGADOT_k + ydot_k_prime * cos(i_k) - y_k_prime * sin(i_k) * idot_k) * sin(OMEGA_k),
 		.y = (xdot_k_prime - y_k_prime * cos(i_k) * OMEGADOT_k) * sin(OMEGA_k) +
 		     (x_k_prime * OMEGADOT_k + ydot_k_prime * cos(i_k) - y_k_prime * sin(i_k) * idot_k) * cos(OMEGA_k),
 		.z = ydot_k_prime * sin(i_k) + y_k_prime * cos(i_k) * idot_k,
-	}};
+	};
 }
 
 static int32_t mask_signed(uint32_t value, int bits)

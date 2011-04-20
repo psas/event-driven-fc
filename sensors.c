@@ -34,14 +34,14 @@ accelerometer_d accelerometer_measurement(struct rocket_state *state)
 
 vec3 gyroscope_measurement(struct rocket_state *state)
 {
-	const vec3 bias = {{ 2048, 2048, 2048 }};
-	const vec3 gain = {{ 5 * 1.1628 * 180 / M_PI, 5 * 1.1628 * 180 / M_PI, 5 * 1.1628 * 180 / M_PI }};
+	const vec3 bias = { 2048, 2048, 2048 };
+	const vec3 gain = { 5 * 1.1628 * 180 / M_PI, 5 * 1.1628 * 180 / M_PI, 5 * 1.1628 * 180 / M_PI };
 	vec3 rocket = ECEF_to_rocket(state, state->rotvel);
-	return (vec3) {{
+	return (vec3) {
 		.x = rocket.x * gain.x + bias.x,
 		.y = rocket.y * gain.y + bias.y,
 		.z = rocket.z * gain.z + bias.z,
-	}};
+	};
 }
 
 double pressure_measurement(struct rocket_state *state)
@@ -54,13 +54,13 @@ double pressure_measurement(struct rocket_state *state)
 
 vec3 magnetometer_measurement(struct rocket_state *state)
 {
-	const vec3 bias = {{ 0, 0, 0 }};
-	const vec3 gain = {{ 1, 1, 1 }};
+	const vec3 bias = { 0, 0, 0 };
+	const vec3 gain = { 1, 1, 1 };
         vec3 mag = magnetic_field(ECEF_to_geodetic(state->pos));
 	vec3 mag_sensor = rocket_to_ECEF(state, mag);
-	return (vec3) {{
+	return (vec3) {
 		.x = mag_sensor.x * gain.x + bias.x,
 		.y = mag_sensor.y * gain.y + bias.y,
 		.z = mag_sensor.z * gain.z + bias.z,
-	}};
+	};
 }
