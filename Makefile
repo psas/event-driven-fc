@@ -28,6 +28,11 @@ LV2LOG_SOURCES = lv2log.c gps.c sim-common.c $(FC_SOURCES)
 lv2log: $(LV2LOG_SOURCES)
 	$(CC) $(CFLAGS) $(LV2LOG_SOURCES) -lm -o $@
 
+DUMP_UNITS_SOURCES = dump_units.c lv2log.c gps.c sim-common.c vec.c coord.c pressure_sensor.c mat.c
+
+dump_units: $(DUMP_UNITS_SOURCES)
+	$(CC) $(CFLAGS) $(DUMP_UNITS_SOURCES) -lm -o $@
+
 COORDTEST_SOURCES = coord.c coordtest.c mat.c vec.c
 
 coordtest: $(COORDTEST_SOURCES)
