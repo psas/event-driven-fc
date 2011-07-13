@@ -144,8 +144,9 @@ double pressure_to_altitude(double pressure) {
 
    /* calculate the base temperature and pressure for the atmospheric layer
       associated with the inputted pressure. */
-   layer_number = 0;
+   layer_number = -1;
    do {
+      layer_number++;
       base_pressure = next_base_pressure;
       base_temperature = next_base_temperature;
       delta_z = base_altitude[layer_number + 1] - base_altitude[layer_number];
@@ -161,7 +162,6 @@ double pressure_to_altitude(double pressure) {
          next_base_pressure *= pow(base, exponent);
       }
       next_base_temperature += delta_z * lapse_rate[layer_number];
-      layer_number++;
    }
    while(layer_number < NUMBER_OF_LAYERS - 1 && pressure < next_base_pressure);
 
