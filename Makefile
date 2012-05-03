@@ -6,7 +6,7 @@ OPTS := -O3 -ffast-math $(call cc-option,-flto -fwhole-program)
 WARNINGS := -Werror -Wall -Wextra -Wmissing-prototypes -Wwrite-strings
 CFLAGS := -g -MD -std=gnu99 $(OPTS) $(WARNINGS) -fno-strict-aliasing
 
-TARGETS = sim lv2log coordtest gpstest
+TARGETS = sim lv2log coordtest gpstest gpssim
 
 all: $(TARGETS)
 
@@ -42,6 +42,11 @@ GPSTEST_SOURCES = gpstest.c gps.c
 
 gpstest: $(GPSTEST_SOURCES)
 	$(CC) $(CFLAGS) $(GPSTEST_SOURCES) -lm -o $@
+
+GPSSIM_SOURCES = gpssim.c gps.c vec.c coord.c $(ZIGGURAT_SOURCES)
+
+gpssim: $(GPSSIM_SOURCES)
+	$(CC) $(CFLAGS) $(GPSSIM_SOURCES) -lm -o $@
 
 -include *.d
 
