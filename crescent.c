@@ -114,6 +114,22 @@ uint16_t sum(uint8_t *packet, int len)
 	return s;
 }
 
+void *memstr(void *m, char *s, int len)
+{
+	int l = strlen(s);
+	void *p;
+	while ((p = memchr(m, *s, len)) != NULL)
+	{
+		m += p-m + 1;
+		len -= p-m + 1;
+		if (len <= l)
+			return NULL;
+		if (memcmp(p, s, l) == 0)
+			return p;
+	}
+	return p;
+}
+
 int get_packet(FILE *gps, struct msg *m)
 {
 	static char buf[8];
@@ -140,7 +156,7 @@ int get_packet(FILE *gps, struct msg *m)
 
 	fread(&m->raw, 1, m->len, gps);
 	// check whether packet was truncated
-	if ((p = strnstr(m->raw, "$BIN", m->len)) != NULL) {
+	if ((p = memstr(m->raw, "$BIN", m->len)) != NULL) {
 		// TODO: resync on found header
 		fprintf(stderr, "packet truncated: got %ld wanted %d\n", p-m->raw, m->len);
 		return -2;
