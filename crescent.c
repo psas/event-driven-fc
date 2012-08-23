@@ -163,18 +163,18 @@ uint16_t sum(uint8_t *packet, int len)
 	return s;
 }
 
-void *memstr(void *m, char *s, int len)
+void *memstr(const void *m, const char *s, size_t len)
 {
-	int l = strlen(s);
+	size_t l = strlen(s);
 	void *p;
 	while ((p = memchr(m, *s, len)) != NULL)
 	{
-		m += p-m + 1;
 		len -= p-m + 1;
 		if (len <= l)
 			return NULL;
 		if (memcmp(p, s, l) == 0)
 			return p;
+		m = p + 1;
 	}
 	return p;
 }
