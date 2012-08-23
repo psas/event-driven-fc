@@ -86,48 +86,51 @@ char *nm   = sizeof(struct msg) - 312;
 
 int handle_msg1(struct msg1 *m)
 {
+	printf("\n\n01: ");
 	switch (m->nav_mode & 0x7f)
 	{
-	case 0:		printf("==> no fix"); break;
-	case 1:		printf("==> 2D fix"); break;
-	case 2:		printf("==> 3D fix"); break;
-	case 3:		printf("==> 2D w/diff"); break;
-	case 4:		printf("==> 3D w/diff"); break;
-	case 5:		printf("==> RTK search"); break;
-	case 6:		printf("==> 3D w/diff and RTK"); break;
-	default:	printf(" bad nav mode: %d", m->nav_mode);
+	case 0:		printf("No fix     "); break;
+	case 1:		printf("2D fix     "); break;
+	case 2:		printf("3D fix     "); break;
+	case 3:		printf("2D+diff    "); break;
+	case 4:		printf("3D+diff    "); break;
+	case 5:		printf("RTK search "); break;
+	case 6:		printf("3D+diff+RTK"); break;
+	default:	printf("BAD NAV MODE: %d", m->nav_mode);
 	}
 	if (m->nav_mode & 0x80)
 		printf(" (manual)");
-	printf(" %u sats,", m->num_sats);
-	printf(" %0.3lf lat, %0.3lf long, %0.1lfm height,", m->latitude, m->longitude, m->height);
-	printf(" %f vN, %f vE, %f vZ\n", m->v_north, m->v_east, m->v_up);
+	printf(" %u SATs,", m->num_sats);
+	printf(" %0.5lf LAT, %0.5lf LON, %02.3lfm ALT,", m->latitude, m->longitude, m->height);
+	printf(" %0.3f vN, %0.3f vE, %0.3f vZ\n\n", m->v_north, m->v_east, m->v_up);
 	return 0;
 }
 
 int handle_msg99(struct msg99 *m)
 {
 	// we care about overall fix, and each satellite's SNR
+	printf("\n\n99: ");
 	int i, sats = 0;
 	switch (m->nav_mode & 0x7)
 	{
-	case 0:		printf("==> invalid"); break;
-	case 1:		printf("==> no fix"); break;
-	case 2:		printf("==> 2D fix"); break;
-	case 3:		printf("==> 3D fix"); break;
-	default:	printf(" bad nav mode: %d", m->nav_mode);
+	case 0:		printf("Inv fix"); break;
+	case 1:		printf("No fix "); break;
+	case 2:		printf("2D fix "); break;
+	case 3:		printf("3D fix "); break;
+	default:	printf("BAD NAV MODE: %d", m->nav_mode);
 	}
 	for (i=0; i<12; i++)
 		if ((m->c[i].status & STATUS99_CHANNEL_RESET) == 0)
 			sats++;
-	printf("  %d satellites visible:\n", sats);
+	printf(" - %02d sats", sats);
 
 	struct chan99 *c;
 	for (c = m->c; c < m->c+12; c++) {
 		if (c->status & STATUS99_CHANNEL_RESET) continue;
-		printf("  sat%02u (%02x): SNR %.2lf\n", c->sat, c->status,
+		printf(" / %3u:%3.0lf", c->sat,
 			40960.0 * c->cli_no / 80000.0);
 	}
+	printf("\n\n");
 	return 0;
 }
 
@@ -146,7 +149,8 @@ int handle_packet(struct msg *m)
 		fprintf(stderr, "bad length %d != %lu\n", m->len, sizeof(struct msg99));
 		return -3;
 	default:
-		fprintf(stderr, "unhandled packet type: %d length %d\n", m->type, m->len);
+		// fprintf(stderr, "unhandled packet type: %d length %d\n", m->type, m->len);
+		fprintf(stderr, "%03d ", m->type);
 		return -4;
 	}
 }
